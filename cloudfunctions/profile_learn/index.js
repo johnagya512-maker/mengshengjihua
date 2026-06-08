@@ -44,6 +44,7 @@ exports.main = async () => {
     }
     return ok({ applied: Object.keys(updates), learning_meta });
   } catch (e) {
-    return fail(500, '学习失败: ' + e.message);
+    console.error('profile_learn 失败:', e);
+    return fail(500, '学习失败，请重试');
   }
 };

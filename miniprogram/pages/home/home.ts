@@ -297,7 +297,9 @@ Page({
     if (!task) return;
     const rest = this.data.tasks.filter((t) => t.task_id !== id);
     this.applyTasks(rest, 0, [{ ...task, status: 'done' }, ...this.data.doneTasks]);
-    wx.showToast({ title: '清掉一件，牛', icon: 'none', duration: 1200 });
+    // 分级完成回响：按已清数 + 剩余数给不同口吻（清空/最后一件/开头/稳住节奏）
+    const doneCount = this.data.doneTasks.length + 1;
+    wx.showToast({ title: completeEcho(doneCount, rest.length), icon: 'none', duration: 1200 });
     (async () => {
       try {
         await api.completeTask({ task_id: id, actual_duration: task.duration, result: 'complete' });

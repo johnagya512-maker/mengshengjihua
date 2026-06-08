@@ -8,6 +8,7 @@ export interface ScheduleResult {
   daily_capacity_used: number;
   daily_capacity_total: number;
   done_today: number;
+  done_tasks?: Task[];   // 已完成/跳过留痕（首页划线展示）
 }
 
 export const api = {

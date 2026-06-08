@@ -104,6 +104,7 @@ exports.main = async (event) => {
       done_tasks,
     });
   } catch (e) {
-    return fail(500, '排期计算失败: ' + e.message);
+    console.error('schedule_compute 失败:', e);
+    return fail(500, '排期计算失败，请重试');
   }
 };
