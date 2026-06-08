@@ -28,11 +28,13 @@ Page({
     coachLine: '',                       // 教练式进度行
     allowSplit: false,                   // 是否让 AI 拆分大事（默认关，快速建单条）
     showCapModal: false,                 // 每日可投入时长调节弹窗
+    capHoursInput: '',                   // 弹窗里用户输入的小时数（字符串，含小数）
     workHoursOptions: [
-      { value: 2, label: '🌱 1~2 小时' },
-      { value: 4, label: '☕ 3~4 小时' },
-      { value: 6, label: '💪 5~6 小时' },
-      { value: 8, label: '🔥 8 小时以上' },
+      { value: 2, label: '2 小时' },
+      { value: 4, label: '4 小时' },
+      { value: 6, label: '6 小时' },
+      { value: 8, label: '8 小时' },
+      { value: 10, label: '10 小时' },
     ],
   },
 
@@ -131,12 +133,19 @@ Page({
   noop() {}, // 拦截面板内点击冒泡到遮罩，避免误关闭
 
   // ---- 每日可投入时长：点胶囊调节，立即重排刷新容量 ----
-  openCapModal() { this.setData({ showCapModal: true }); },
+  openCapModal() { this.setData({ showCapModal: true, capHoursInput: '' }); },
   closeCapModal() { this.setData({ showCapModal: false }); },
-  async pickWorkHours(e: WechatMiniprogram.TouchEvent) {
-    const h = Number(e.currentTarget.dataset.h);
+  onCapHoursInput(e: WechatMiniprogram.Input) { this.setData({ capHoursInput: e.detail.value }); },
+  fillCapHours(e: WechatMiniprogram.TouchEvent) {
+    this.setData({ capHoursInput: String(e.currentTarget.dataset.h) });
+  },
+  async submitCapHours() {
+    const h = Number(this.data.capHoursInput);
+    if (!(h > 0 && h <= 24)) {
+      wx.showToast({ title: '请填 1~24 之间的小时数', icon: 'none' });
+      return;
+    }
     this.setData({ showCapModal: false });
-    if (!(h >= 1 && h <= 12)) return;
     try {
       await api.patchProfile({ ideal_work_hours: h });
       // 改完立即重排，容量条按新额度刷新

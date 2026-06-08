@@ -111,13 +111,21 @@
     </view>
   </view>
 
-  <!-- 每日可投入时长调节 -->
+  <!-- 每日可投入时长调节：自由输入 + 快捷档 -->
   <view wx:if="{{showCapModal}}" class="mask" bindtap="closeCapModal">
     <view class="caphours" catchtap="noop">
       <view class="caphours__title">每天大概能投入多少？</view>
-      <view class="caphours__hint">改完今日额度立即重算，之后系统仍会按你实际完成情况校准</view>
-      <view wx:for="{{workHoursOptions}}" wx:key="value"
-            class="caphours__opt" data-h="{{item.value}}" bindtap="pickWorkHours">{{item.label}}</view>
+      <view class="caphours__hint">填你自己的数字，改完今日额度立即重算，之后系统仍会按实际完成情况校准</view>
+      <view class="caphours__inputrow">
+        <input class="caphours__input" type="digit" placeholder="如 6"
+               value="{{capHoursInput}}" bindinput="onCapHoursInput" focus="{{showCapModal}}" />
+        <text class="caphours__unit">小时 / 天</text>
+      </view>
+      <view class="caphours__chips">
+        <text wx:for="{{workHoursOptions}}" wx:key="value"
+              class="caphours__chip" data-h="{{item.value}}" bindtap="fillCapHours">{{item.label}}</text>
+      </view>
+      <button class="btn-primary caphours__ok" bindtap="submitCapHours">确定</button>
     </view>
   </view>
 </view>
