@@ -16,16 +16,35 @@ const COLORS = ['#7A9E7E', '#E8B98A', '#A8C0D6', '#D6A8C0', '#C0D6A8'];
 const PROFILE = { ideal_work_hours: 6, peak_hours: ['09:00-11:00'] };
 
 // 简易关键词 → 解析结果（替代 AI）
-function fakeParse(text: string) {
+function fakeParse(text: string, allowSplit = false, forcePlan = false) {
   const t = text.trim();
   const tag = t.length > 6 ? t.slice(0, 4) : '日常';
   const dur = [15, 30, 45, 60][t.length % 4];
+  const goal = t.slice(0, 100);
+  // 开关开启(force_plan)：强制拆成 3 个动词开头的小步，模拟线上 force_plan 行为
+  if (allowSplit || forcePlan) {
+    return {
+      is_big_task: true,
+      action: goal,
+      duration: 90,
+      project_tag: tag,
+      vision_statement: '迈出这一步，项目就活了',
+      is_new_project: !mem.projects[tag],
+      subtasks: [
+        { action: `梳理「${goal}」要准备什么`, duration: 30 },
+        { action: `动手做「${goal}」的第一版`, duration: 45 },
+        { action: `检查并收尾「${goal}」`, duration: 30 },
+      ],
+    };
+  }
   return {
-    action: t.slice(0, 100),
+    is_big_task: false,
+    action: goal,
     duration: dur,
     project_tag: tag,
-    vision_statement: '迈出这一步，项目就活了',
+    vision_statement: '',
     is_new_project: !mem.projects[tag],
+    subtasks: [],
   };
 }
 
@@ -84,7 +103,7 @@ export function mockCall(name: string, data: any): Promise<any> {
       return delay({ success: true });
 
     case 'task_parse':
-      return delay(fakeParse(data.input_text), 600);
+      return delay(fakeParse(data.input_text, !!data.allow_split, !!data.force_plan), 600);
 
     case 'project_create': {
       const nm = (data.name || '').trim();
