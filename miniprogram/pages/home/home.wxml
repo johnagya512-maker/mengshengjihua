@@ -16,6 +16,7 @@
         <view class="taskcard__btns">
           <button class="btn-primary taskcard__start" bindtap="startTask">开始</button>
           <button class="taskcard__done" catchtap="completeDirect" data-id="{{current.task_id}}">✓ 完成</button>
+          <view class="taskcard__del" catchtap="deletePending" data-id="{{current.task_id}}">删除</view>
         </view>
       </view>
       <view class="home__count">{{coachLine}}</view>
@@ -29,6 +30,7 @@
           <view class="queue__action">{{item.action}}</view>
           <view class="queue__dur">{{item.duration}}分</view>
           <view class="queue__done" catchtap="completeDirect" data-id="{{item.task_id}}">✓</view>
+          <view class="queue__del" catchtap="deletePending" data-id="{{item.task_id}}">×</view>
         </view>
       </view>
     </block>

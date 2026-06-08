@@ -31,6 +31,11 @@
   transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
 .taskcard__done:active { transform: scale(0.96); background: rgba(107,123,60,0.14); color: var(--color-accent); }
+.taskcard__del {
+  margin-left: auto; font-size: 26rpx; color: var(--color-text-sub);
+  padding: 0 16rpx; line-height: 76rpx; transition: color 0.18s ease;
+}
+.taskcard__del:active { color: #E05A4F; }
 .home__count { text-align: center; font-size: 26rpx; color: var(--color-text-sub); margin-top: 28rpx; line-height: 1.5; }
 .home__empty {
   text-align: center; font-size: 40rpx; font-weight: 600; color: var(--color-text-sub);
@@ -61,6 +66,12 @@
   transition: background 0.18s ease, transform 0.18s ease;
 }
 .queue__done:active { background: rgba(107,123,60,0.16); transform: scale(0.9); }
+.queue__del {
+  flex-shrink: 0; width: 56rpx; height: 56rpx; line-height: 52rpx;
+  text-align: center; font-size: 40rpx; color: var(--color-text-sub);
+  border-radius: 50%; transition: background 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+.queue__del:active { background: rgba(224,90,79,0.12); color: #E05A4F; transform: scale(0.9); }
 
 /* 已完成 / 跳过留痕：划线置灰，用户自删 */
 .done { margin-top: 56rpx; }

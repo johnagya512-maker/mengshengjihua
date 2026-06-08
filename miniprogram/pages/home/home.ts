@@ -309,6 +309,29 @@ Page({
     })();
   },
 
+  // 删除一条待办（当前任务卡 / 接下来列表）。二次确认后乐观删除：先移除再后台删库
+  deletePending(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    if (!id) return;
+    const task = this.data.tasks.find((t) => t.task_id === id);
+    if (!task) return;
+    wx.showModal({
+      title: '删除任务',
+      content: `删除「${task.action}」？`,
+      confirmText: '删除',
+      confirmColor: '#E05A4F',
+      success: (res) => {
+        if (!res.confirm) return;
+        const rest = this.data.tasks.filter((t) => t.task_id !== id);
+        this.applyTasks(rest);
+        cacheTasks(rest);
+        api.deleteTask(id).catch(() => {
+          wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
+        });
+      },
+    });
+  },
+
   // 删除一条已完成/跳过留痕（用户主动清理）。乐观删除：先从列表移除，再后台删库
   deleteDone(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
