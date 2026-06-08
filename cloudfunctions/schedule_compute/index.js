@@ -37,6 +37,35 @@ exports.main = async (event) => {
     // 2. 取 pending 任务，排除被移到「未来日期」的（容量饱和移次日）。
     //    scheduled_date 为空或 <= 今天的才进入今日队列；跨天后次日任务自然回归。
     const today = todayStr();
+
+    // 2b. 每日重复：daily_init 时为每个母本（template）补当天实例（缺则建）。
+    //     每天一条独立实例 → 完成后各自留痕，喂给 streak「连续达标」统计。
+    if (trigger === 'daily_init') {
+      const tplRes = await db.collection('tasks')
+        .where({ _openid: OPENID, status: 'template', repeat: 'daily' }).get();
+      if (tplRes.data.length) {
+        const instRes = await db.collection('tasks')
+          .where({ _openid: OPENID, repeat_date: today })
+          .field({ repeat_parent_id: true }).get();
+        const haveToday = new Set(instRes.data.map((t) => t.repeat_parent_id));
+        const toCreate = tplRes.data.filter((tpl) => !haveToday.has(tpl.task_id));
+        await Promise.all(toCreate.map((tpl) =>
+          db.collection('tasks').add({
+            data: {
+              _openid: OPENID,
+              task_id: `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              project_id: tpl.project_id, project_tag: tpl.project_tag,
+              action: tpl.action, duration: tpl.duration, vision_statement: tpl.vision_statement || '',
+              type: 'normal', status: 'pending', scheduled_time: '',
+              is_priority: !!tpl.is_priority, created_at: Date.now(),
+              parent_task_id: '', parent_action: '',
+              repeat: 'none', repeat_parent_id: tpl.task_id, repeat_date: today,
+            },
+          }).catch(() => {})
+        ));
+      }
+    }
+
     const taskRes = await db.collection('tasks')
       .where({ _openid: OPENID, status: 'pending', type: _.neq('gap') })
       .get();

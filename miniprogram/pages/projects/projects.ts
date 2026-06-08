@@ -14,6 +14,10 @@ Page({
     newGoal: '',                       // count 目标件数 / result 目标数值
     newQuota: '',                      // streak 每日标准
     newUnit: '',                       // result 单位
+    // 项目内加任务面板
+    addingId: '',                      // 正在加任务的项目 id（空=未展开输入）
+    addAction: '',
+    addRepeat: false,                  // 是否每日重复
   },
 
   onShow() { this.load(); },
@@ -59,9 +63,36 @@ Page({
 
   toggle(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
-    if (this.data.activeId === id) { this.setData({ activeId: '', activeGroups: [] }); return; }
+    if (this.data.activeId === id) { this.setData({ activeId: '', activeGroups: [], addingId: '' }); return; }
     const p: any = this.data.projects.find((x) => x.project_id === id);
-    this.setData({ activeId: id, activeGroups: p?.groups || [] });
+    this.setData({ activeId: id, activeGroups: p?.groups || [], addingId: '' });
+  },
+
+  // ---- 项目内加任务（一键同步今日清单）----
+  openAdd(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    this.setData({ addingId: id, addAction: '', addRepeat: false });
+  },
+  closeAdd() { this.setData({ addingId: '' }); },
+  onAddInput(e: WechatMiniprogram.Input) { this.setData({ addAction: e.detail.value }); },
+  onRepeatToggle(e: WechatMiniprogram.SwitchChange) { this.setData({ addRepeat: e.detail.value }); },
+
+  async submitAdd() {
+    const action = this.data.addAction.trim();
+    if (!action) return wx.showToast({ title: '写点要做的事', icon: 'none' });
+    const p: any = this.data.projects.find((x) => x.project_id === this.data.addingId);
+    if (!p) return;
+    try {
+      await api.saveTask({
+        action, duration: 30, project_tag: p.name, vision_statement: '',
+        ...(this.data.addRepeat ? { repeat: 'daily' } : {}),
+      });
+      this.setData({ addingId: '' });
+      wx.showToast({ title: this.data.addRepeat ? '已加，每天进清单' : '已加进今日清单', icon: 'none', duration: 1500 });
+      this.load();
+    } catch (err: any) {
+      wx.showToast({ title: err.msg || '添加失败', icon: 'none' });
+    }
   },
 
   // 长按项目卡 → 确认删除（连带删除该项目下任务）

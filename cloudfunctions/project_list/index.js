@@ -58,6 +58,7 @@ exports.main = async () => {
 
     const tasksByProject = {};
     taskRes.data.forEach((t) => {
+      if (t.status === 'template') return; // 每日重复母本：不计入任务点/统计，只用于实例化
       (tasksByProject[t.project_id] = tasksByProject[t.project_id] || []).push({
         task_id: t.task_id, action: t.action, status: t.status,
         parent_task_id: t.parent_task_id || '', parent_action: t.parent_action || '',

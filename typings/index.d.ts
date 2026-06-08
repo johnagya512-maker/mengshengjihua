@@ -9,7 +9,7 @@ interface IAppOption {
 }
 
 // ===== 领域模型 =====
-type TaskStatus = 'pending' | 'done' | 'skip';
+type TaskStatus = 'pending' | 'done' | 'skip' | 'template'; // template = 每日重复母本，不排期不展示
 type TaskType = 'normal' | 'gap'; // gap = 治愈间隙
 type ProjectMode = 'count' | 'streak' | 'result'; // 项目三态：计数/坚持/数值
 type SkipReason = '没状态' | '等待外部' | '临时取消';
@@ -39,6 +39,9 @@ interface Task {
   is_priority?: boolean;       // P0 紧急
   parent_task_id?: string;     // 大事拆分：所属父任务（步骤共享同一个）
   parent_action?: string;      // 父任务（大事）标题，用于归组显示
+  repeat?: 'daily' | 'none';   // daily=每日重复母本，每天实例化进清单
+  repeat_date?: string;        // 实例所属日期 YYYY-MM-DD（由母本克隆而来）
+  repeat_parent_id?: string;   // 实例指向其母本 task_id
   created_at: number;
 }
 

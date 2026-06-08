@@ -9,9 +9,15 @@ function fail(code, msg) { return { code, msg }; }
 const PROJECT_COLORS = ['#7A9E7E', '#E8B98A', '#A8C0D6', '#D6A8C0', '#C0D6A8', '#D6C7A8', '#A8D6CF', '#B8A8D6'];
 const DURATION_ENUM = [15, 30, 45, 60, 75, 90, 105, 120];
 
+// 东八区今日 YYYY-MM-DD
+function todayStr() {
+  return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function genId() { return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action } = event;
+  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, repeat } = event;
   if (!OPENID) return fail(400, '登录态无效');
 
   // 字段校验。愿景非必填：碎任务留白，仅「大事」的步骤才配愿景
@@ -44,16 +50,33 @@ exports.main = async (event) => {
       projectTag = '随手记';
     }
     // task_id 加随机后缀：子任务批量保存可能落在同毫秒，纯时间戳会碰撞
-    const task_id = `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const isDaily = repeat === 'daily';
+    const baseFields = {
+      _openid: OPENID, project_id: projectId, project_tag: projectTag,
+      action, duration: Number(duration), vision_statement: vision_statement || '',
+      type: 'normal', is_priority: !!is_priority, created_at: Date.now(),
+      parent_task_id: parent_task_id || '', parent_action: parent_action || '',
+    };
+
+    if (isDaily) {
+      // 每日重复：存「母本」（template，不排期不展示）+ 立即建当天实例，使当天即可见
+      const tplId = genId();
+      await db.collection('tasks').add({
+        data: { ...baseFields, task_id: tplId, status: 'template', repeat: 'daily', scheduled_time: '' },
+      });
+      const instId = genId();
+      await db.collection('tasks').add({
+        data: {
+          ...baseFields, task_id: instId, status: 'pending', scheduled_time: '',
+          repeat: 'none', repeat_parent_id: tplId, repeat_date: todayStr(),
+        },
+      });
+      return ok({ task_id: instId, project_id: projectId, template_id: tplId });
+    }
+
+    const task_id = genId();
     await db.collection('tasks').add({
-      data: {
-        _openid: OPENID, task_id, project_id: projectId, project_tag: projectTag,
-        action, duration: Number(duration), vision_statement,
-        type: 'normal', status: 'pending', scheduled_time: '',
-        is_priority: !!is_priority, created_at: Date.now(),
-        parent_task_id: parent_task_id || '',
-        parent_action: parent_action || '',
-      },
+      data: { ...baseFields, task_id, status: 'pending', scheduled_time: '', repeat: 'none' },
     });
     return ok({ task_id, project_id: projectId });
   } catch (e) {

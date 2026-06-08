@@ -61,3 +61,19 @@
 .modal__btn { flex: 1; text-align: center; padding: 26rpx; border-radius: 16rpx; font-size: 30rpx; font-weight: 600; }
 .modal__btn--ghost { background: rgba(0,0,0,0.05); color: var(--color-text-sub); }
 .modal__btn--primary { background: var(--color-primary); color: #fff; }
+
+/* ===== 项目内加任务 ===== */
+.addbox__open {
+  margin-top: 20rpx; text-align: center; font-size: 26rpx; font-weight: 600;
+  color: var(--color-primary); padding: 16rpx; border-radius: 12rpx;
+  background: rgba(122,158,126,0.10);
+}
+.addbox { margin-top: 20rpx; padding: 20rpx; border-radius: 16rpx; background: rgba(0,0,0,0.04); }
+.addbox__input { width: 100%; box-sizing: border-box; background: #fff; border-radius: 12rpx; padding: 18rpx 20rpx; font-size: 28rpx; }
+.addbox__row { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
+.addbox__repeat { display: flex; align-items: center; gap: 8rpx; }
+.addbox__repeat-label { font-size: 24rpx; color: var(--color-text-sub); }
+.addbox__btns { display: flex; align-items: center; gap: 24rpx; }
+.addbox__btn { font-size: 28rpx; color: var(--color-text-sub); }
+.addbox__btn--primary { color: var(--color-primary); font-weight: 600; }
+

@@ -96,18 +96,44 @@ export function mockCall(name: string, data: any): Promise<any> {
         const idx = Object.keys(mem.projects).length;
         mem.projects[tag] = { project_id: `p_${idx}`, name: tag, color: COLORS[idx % COLORS.length] };
       }
-      const task_id = `t_${++mem.seq}`;
-      mem.tasks.push({
-        task_id, project_id: mem.projects[tag].project_id, project_tag: tag,
+      const pid = mem.projects[tag].project_id;
+      const today = cstDate(Date.now());
+      const base = {
+        project_id: pid, project_tag: tag,
         action: data.action, duration: data.duration, vision_statement: data.vision_statement,
-        type: 'normal', status: 'pending', scheduled_time: '', is_priority: !!data.is_priority,
-        created_at: mem.seq,
-      });
-      return delay({ task_id, project_id: mem.projects[tag].project_id });
+        type: 'normal', scheduled_time: '', is_priority: !!data.is_priority, created_at: mem.seq,
+      };
+      if (data.repeat === 'daily') {
+        // 母本（template，不排期不显示）+ 当天实例
+        const tplId = `t_${++mem.seq}`;
+        mem.tasks.push({ ...base, task_id: tplId, status: 'template', repeat: 'daily' });
+        const instId = `t_${++mem.seq}`;
+        mem.tasks.push({ ...base, task_id: instId, status: 'pending', repeat: 'none', repeat_parent_id: tplId, repeat_date: today });
+        return delay({ task_id: instId, project_id: pid, template_id: tplId });
+      }
+      const task_id = `t_${++mem.seq}`;
+      mem.tasks.push({ ...base, task_id, status: 'pending', repeat: 'none' });
+      return delay({ task_id, project_id: pid });
     }
 
     case 'schedule_compute': {
-      // 与云端一致：排除被移到次日的任务（scheduled_date 标记）
+      // daily_init：为每个每日重复母本补当天实例（缺则建），与云端一致
+      if (data.trigger === 'daily_init') {
+        const today = cstDate(Date.now());
+        const haveToday = new Set(
+          mem.tasks.filter((t) => t.repeat_date === today).map((t) => t.repeat_parent_id)
+        );
+        mem.tasks.filter((t) => t.status === 'template' && t.repeat === 'daily').forEach((tpl) => {
+          if (haveToday.has(tpl.task_id)) return;
+          mem.tasks.push({
+            task_id: `t_${++mem.seq}`, project_id: tpl.project_id, project_tag: tpl.project_tag,
+            action: tpl.action, duration: tpl.duration, vision_statement: tpl.vision_statement,
+            type: 'normal', status: 'pending', scheduled_time: '', is_priority: !!tpl.is_priority,
+            created_at: mem.seq, repeat: 'none', repeat_parent_id: tpl.task_id, repeat_date: today,
+          });
+        });
+      }
+      // 与云端一致：排除被移到次日的任务（scheduled_date 标记）；template 不参与排期
       const pending = mem.tasks.filter((t) => t.status === 'pending' && t.scheduled_date !== 'tomorrow');
       const r = schedule({ tasks: pending, profile: PROFILE, nowMinute: 540, skipStats: mem.skipStats });
       r.ordered_tasks.forEach((ot: any) => {
@@ -196,7 +222,7 @@ export function mockCall(name: string, data: any): Promise<any> {
 
     case 'project_list': {
       const projects = Object.values(mem.projects).map((p: any) => {
-        const taskList = mem.tasks.filter((t) => t.project_id === p.project_id);
+        const taskList = mem.tasks.filter((t) => t.project_id === p.project_id && t.status !== 'template');
         const list = taskList.map((t) => ({ task_id: t.task_id, action: t.action, status: t.status }));
         const doneList = taskList.filter((t) => t.status === 'done');
         const mode = p.mode || 'count';

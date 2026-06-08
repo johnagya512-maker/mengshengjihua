@@ -51,6 +51,24 @@
             <text class="dotrow__action">{{g.action}}</text>
           </view>
         </block>
+
+        <!-- 项目内加任务：一键同步今日清单 -->
+        <block wx:if="{{addingId === item.project_id}}">
+          <view class="addbox" catchtap="stopPropagation">
+            <input class="addbox__input" placeholder="加一件事，自动进今日清单" value="{{addAction}}" bindinput="onAddInput" maxlength="100" confirm-type="done" bindconfirm="submitAdd" />
+            <view class="addbox__row">
+              <view class="addbox__repeat">
+                <text class="addbox__repeat-label">每日重复</text>
+                <switch checked="{{addRepeat}}" bindchange="onRepeatToggle" color="{{item.color}}" style="transform:scale(0.8)" />
+              </view>
+              <view class="addbox__btns">
+                <text class="addbox__btn" catchtap="closeAdd">取消</text>
+                <text class="addbox__btn addbox__btn--primary" catchtap="submitAdd">加入</text>
+              </view>
+            </view>
+          </view>
+        </block>
+        <view wx:else class="addbox__open" data-id="{{item.project_id}}" catchtap="openAdd">＋ 加任务</view>
       </view>
     </view>
   </view>
