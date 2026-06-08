@@ -1,20 +1,26 @@
 .focus {
   min-height: 100vh; padding: 160rpx 60rpx;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative;
 }
 .focus__confirm, .focus__finish { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.focus__vision {
-  font-size: 34rpx; color: var(--color-primary); text-align: center; line-height: 1.6;
-  background: rgba(122,158,126,0.1); padding: 40rpx; border-radius: var(--radius-lg); margin-bottom: 48rpx;
+.focus__back {
+  position: absolute; top: 80rpx; left: 48rpx;
+  font-size: 30rpx; color: var(--color-text-sub); padding: 12rpx 8rpx;
 }
-.focus__action { font-size: 40rpx; font-weight: 600; text-align: center; margin-bottom: 60rpx; }
-.focus__dur { display: flex; align-items: center; gap: 40rpx; margin-bottom: 80rpx; }
+.focus__vision {
+  font-size: 32rpx; color: var(--color-primary); text-align: center; line-height: 1.6;
+  background: rgba(198,123,92,0.1); padding: 36rpx; border-radius: var(--radius-lg); margin-bottom: 40rpx;
+}
+.focus__action { font-size: 40rpx; font-weight: 600; text-align: center; margin-bottom: 64rpx; line-height: 1.4; }
+.focus__dur { display: flex; align-items: center; gap: 32rpx; margin-bottom: 72rpx; }
 .focus__adjust {
-  width: 120rpx; height: 72rpx; line-height: 72rpx; text-align: center;
+  width: 112rpx; height: 72rpx; line-height: 72rpx; text-align: center;
   border-radius: 999rpx; background: var(--color-card); color: var(--color-primary); font-size: 28rpx;
+  box-shadow: var(--shadow-card);
 }
 .focus__durval { font-size: 44rpx; font-weight: 600; min-width: 200rpx; text-align: center; }
-.focus__go, .focus__complete { width: 100%; height: 96rpx; line-height: 96rpx; font-size: 32rpx; }
+.focus__go, .focus__complete { width: 100%; height: 96rpx; font-size: 32rpx; }
 
 .focus__running { display: flex; flex-direction: column; align-items: center; }
 .focus__timer { font-size: 140rpx; font-weight: 200; letter-spacing: 4rpx; color: var(--color-primary); }

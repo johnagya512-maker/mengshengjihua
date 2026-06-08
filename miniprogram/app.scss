@@ -31,8 +31,14 @@ page {
   color: #fff;
   border-radius: 999rpx;
   border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
+/* 抹掉微信 button 默认的 ::after 边框，避免与圆角/居中打架 */
+.btn-primary::after { border: none; }
 .btn-primary:active { opacity: 0.85; transform: scale(0.97); }
 
 .card {
