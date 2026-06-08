@@ -1,11 +1,10 @@
 <view class="projects">
   <view class="projects__head">
     <view class="projects__title">项目</view>
-    <view class="projects__add" bindtap="openCreate">＋ 新建</view>
   </view>
 
   <view wx:if="{{loading}}" class="projects__loading">加载中…</view>
-  <view wx:elif="{{projects.length === 0}}" class="projects__empty">还没有项目，点右上角「＋ 新建」开始</view>
+  <view wx:elif="{{projects.length === 0}}" class="projects__empty">还没有项目，点右下角「＋」开始</view>
 
   <view wx:else class="projects__grid">
     <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
@@ -78,7 +77,7 @@
   <view wx:if="{{showCreate}}" class="modal-mask" bindtap="closeCreate">
     <view class="modal" catchtap="stopPropagation">
       <view class="modal__title">新建项目</view>
-      <input class="modal__input" placeholder="项目名，如：视频号运营" value="{{newName}}" bindinput="onNameInput" maxlength="30" />
+      <input class="modal__input" placeholder-class="modal__input-ph" placeholder="项目名，如：视频号运营" value="{{newName}}" bindinput="onNameInput" maxlength="30" />
 
       <view class="modal__label">用什么来衡量推进</view>
       <view class="mode-tabs">
@@ -97,14 +96,14 @@
       </view>
 
       <block wx:if="{{newMode === 'count'}}">
-        <input class="modal__input" type="number" placeholder="目标件数，如 100" value="{{newGoal}}" bindinput="onGoalInput" />
+        <input class="modal__input" placeholder-class="modal__input-ph" type="number" placeholder="目标件数，如 100" value="{{newGoal}}" bindinput="onGoalInput" />
       </block>
       <block wx:elif="{{newMode === 'streak'}}">
-        <input class="modal__input" type="number" placeholder="每日标准，如 1（日更1个）" value="{{newQuota}}" bindinput="onQuotaInput" />
+        <input class="modal__input" placeholder-class="modal__input-ph" type="number" placeholder="每日标准，如 1（日更1个）" value="{{newQuota}}" bindinput="onQuotaInput" />
       </block>
       <block wx:elif="{{newMode === 'result'}}">
-        <input class="modal__input" type="number" placeholder="目标数值，如 10000" value="{{newGoal}}" bindinput="onGoalInput" />
-        <input class="modal__input" placeholder="单位，如 元 / 粉丝" value="{{newUnit}}" bindinput="onUnitInput" maxlength="10" />
+        <input class="modal__input" placeholder-class="modal__input-ph" type="number" placeholder="目标数值，如 10000" value="{{newGoal}}" bindinput="onGoalInput" />
+        <input class="modal__input" placeholder-class="modal__input-ph" placeholder="单位，如 元 / 粉丝" value="{{newUnit}}" bindinput="onUnitInput" maxlength="10" />
       </block>
 
       <view class="modal__actions">
@@ -113,5 +112,8 @@
       </view>
     </view>
   </view>
+
+  <!-- 右下角新建项目悬浮按钮 -->
+  <view class="fab" bindtap="openCreate">＋</view>
 </view>
 
