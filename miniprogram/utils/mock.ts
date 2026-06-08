@@ -163,6 +163,37 @@ export function mockCall(name: string, data: any): Promise<any> {
       return delay({ deleted: !!proj });
     }
 
+    case 'review_week': {
+      const wkStart = weekStartMs();
+      const done = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= wkStart);
+      const skipsInWeek = mem.tasks.filter((t) => t.status === 'skip');
+      // 按项目分布
+      const nameOf: Record<string, string> = {}; const colorOf: Record<string, string> = {};
+      Object.values(mem.projects).forEach((p: any) => { nameOf[p.project_id] = p.name; colorOf[p.project_id] = p.color; });
+      const byProject: Record<string, number> = {};
+      done.forEach((t) => { byProject[t.project_id || ''] = (byProject[t.project_id || ''] || 0) + 1; });
+      const distribution = Object.keys(byProject).map((pid) => ({
+        project_id: pid, name: nameOf[pid] || '随手记', color: colorOf[pid] || '#B0AAA2', count: byProject[pid],
+      })).sort((a, b) => b.count - a.count);
+      // 跳过归因（mock 用 skipStats 累加的 reason 计数）
+      const counts: any = { 没状态: 0, 等待外部: 0, 临时取消: 0 };
+      Object.values(mem.skipStats).forEach((bucket: any) => {
+        if (bucket && typeof bucket === 'object') {
+          Object.keys(bucket).forEach((r) => { if (counts[r] !== undefined) counts[r] += bucket[r]; });
+        }
+      });
+      const skipTotal = counts.没状态 + counts.等待外部 + counts.临时取消;
+      // 耗时偏差
+      let estSum = 0, actSum = 0, biasN = 0;
+      done.forEach((t) => { const est = t.duration || 0; const act = t.actual_duration || 0; if (est && act) { estSum += est; actSum += act; biasN += 1; } });
+      const ratio = estSum ? Math.round((actSum / estSum) * 10) / 10 : 0;
+      return delay({
+        week_start: wkStart, done_count: done.length, distribution, top_project: distribution[0] || null,
+        skip_counts: counts, skip_total: skipTotal,
+        duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio },
+      });
+    }
+
     case 'project_list': {
       const projects = Object.values(mem.projects).map((p: any) => {
         const taskList = mem.tasks.filter((t) => t.project_id === p.project_id);

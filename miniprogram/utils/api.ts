@@ -51,6 +51,11 @@ export const api = {
     return callCloud('project_list');
   },
 
+  // 本周复盘聚合（只读已有数据：完成分布 / 跳过归因 / 耗时偏差）
+  reviewWeek(): Promise<WeekReview> {
+    return callCloud('review_week');
+  },
+
   createProject(p: {
     name: string;
     mode?: ProjectMode;

@@ -3,7 +3,8 @@
     "pages/guide/guide",
     "pages/home/home",
     "pages/focus/focus",
-    "pages/projects/projects"
+    "pages/projects/projects",
+    "pages/review/review"
   ],
   "window": {
     "navigationStyle": "custom",
@@ -18,7 +19,8 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/home/home", "text": "今日" },
-      { "pagePath": "pages/projects/projects", "text": "项目" }
+      { "pagePath": "pages/projects/projects", "text": "项目" },
+      { "pagePath": "pages/review/review", "text": "复盘" }
     ]
   },
   "lazyCodeLoading": "requiredComponents",

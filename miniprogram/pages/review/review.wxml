@@ -1,0 +1,50 @@
+<view class="review">
+  <view class="review__head">
+    <view class="review__title">本周复盘</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="review__loading">加载中…</view>
+  <view wx:elif="{{empty}}" class="review__empty">这周还没有记录，去今日清单做一件，这里就有复盘了</view>
+
+  <block wx:else>
+    <!-- 总览 -->
+    <view class="review__headline">{{headline}}</view>
+
+    <!-- 本周做了啥：按项目分布 -->
+    <view wx:if="{{distribution.length}}" class="card section">
+      <view class="section__title">做了啥</view>
+      <view wx:for="{{distribution}}" wx:key="project_id" class="dist">
+        <view class="dist__top">
+          <text class="dist__name">{{item.name}}</text>
+          <text class="dist__count">{{item.count}} 件</text>
+        </view>
+        <view class="dist__bar"><view class="dist__fill" style="width:{{item.width}}%;background:{{item.color}}"></view></view>
+      </view>
+    </view>
+
+    <!-- 哪些在拖：跳过归因 -->
+    <view class="card section">
+      <view class="section__title">哪些在拖</view>
+      <block wx:if="{{skipTotal}}">
+        <view wx:for="{{skipRows}}" wx:key="reason" class="dist">
+          <view class="dist__top">
+            <text class="dist__name">{{item.reason}}</text>
+            <text class="dist__count">{{item.count}} 次</text>
+          </view>
+          <view class="dist__bar"><view class="dist__fill dist__fill--skip" style="width:{{item.width}}%"></view></view>
+        </view>
+      </block>
+      <view class="section__insight">{{skipInsight}}</view>
+    </view>
+
+    <!-- 耗时认知：实际 vs 预估 -->
+    <view class="card section">
+      <view class="section__title">耗时认知</view>
+      <view wx:if="{{biasSample}}" class="bias">
+        <view class="bias__num">×{{biasRatio}}</view>
+        <view class="bias__cap">实际 / 预估（{{biasSample}} 件样本）</view>
+      </view>
+      <view class="section__insight">{{biasInsight}}</view>
+    </view>
+  </block>
+</view>

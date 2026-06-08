@@ -24,3 +24,30 @@ export function skipReply(reason: string): string {
     default:         return '先放一放，没关系';
   }
 }
+
+// ---- 复盘页文案（方向 v1.1 §4：只陈述事实 + 轻量建议，不评判）----
+
+// 跳过归因的轻量解读：哪类偏多给不同接话
+export function skipInsight(counts: { 没状态: number; 等待外部: number; 临时取消: number }): string {
+  const total = counts.没状态 + counts.等待外部 + counts.临时取消;
+  if (total === 0) return '这周没跳过什么，节奏挺稳';
+  const max = Math.max(counts.没状态, counts.等待外部, counts.临时取消);
+  if (counts.等待外部 === max) return '多数跳过是在等外部，不是你的问题，能催的催一下';
+  if (counts.没状态 === max) return '多数跳过是没状态，也许是把硬活排在了精力低谷';
+  return '多数是临时取消，计划本来就会变，正常';
+}
+
+// 耗时偏差解读：>1 习惯性低估，<1 习惯性高估
+export function biasInsight(ratio: number, sample: number): string {
+  if (!sample) return '完成的任务还不够多，耗时认知先攒着';
+  if (ratio >= 1.2) return `实际比预估多花约 ${Math.round((ratio - 1) * 100)}%，排期时可以多留点余量`;
+  if (ratio <= 0.8) return `实际比预估少花约 ${Math.round((1 - ratio) * 100)}%，你其实比想象中快`;
+  return '预估和实际基本对得上，这个手感不错';
+}
+
+// 本周完成总览
+export function reviewHeadline(doneCount: number, topName: string): string {
+  if (doneCount === 0) return '这周还没完成记录，做一件就有了';
+  if (topName) return `这周清掉 ${doneCount} 件，「${topName}」推进最多`;
+  return `这周清掉 ${doneCount} 件`;
+}

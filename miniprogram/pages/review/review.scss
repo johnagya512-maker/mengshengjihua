@@ -1,0 +1,28 @@
+// pages/review/review.scss — 本周复盘样式（沿用项目页卡片/色板约定）
+.review { min-height: 100vh; padding: 120rpx 40rpx 160rpx; box-sizing: border-box; }
+.review__head { margin-bottom: 32rpx; }
+.review__title { font-size: 48rpx; font-weight: 600; }
+.review__loading, .review__empty {
+  text-align: center; color: var(--color-text-sub); font-size: 28rpx;
+  padding: 120rpx 40rpx 0; line-height: 1.6;
+}
+.review__headline {
+  font-size: 32rpx; font-weight: 600; line-height: 1.5;
+  margin-bottom: 36rpx; color: var(--color-text);
+}
+
+.section { padding: 36rpx 32rpx; margin-bottom: 28rpx; }
+.section__title { font-size: 28rpx; font-weight: 600; color: var(--color-text-sub); margin-bottom: 24rpx; }
+.section__insight { font-size: 26rpx; color: var(--color-text-sub); line-height: 1.6; margin-top: 8rpx; }
+
+.dist { margin-bottom: 24rpx; }
+.dist__top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12rpx; }
+.dist__name { font-size: 28rpx; font-weight: 500; }
+.dist__count { font-size: 24rpx; color: var(--color-text-sub); }
+.dist__bar { height: 16rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); overflow: hidden; }
+.dist__fill { height: 100%; border-radius: 999rpx; transition: width 0.4s ease; min-width: 8rpx; }
+.dist__fill--skip { background: var(--color-text-sub); opacity: 0.5; }
+
+.bias { display: flex; align-items: baseline; gap: 16rpx; margin-bottom: 12rpx; }
+.bias__num { font-size: 64rpx; font-weight: 700; color: var(--color-primary); line-height: 1; }
+.bias__cap { font-size: 24rpx; color: var(--color-text-sub); }

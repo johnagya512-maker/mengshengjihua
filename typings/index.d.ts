@@ -67,6 +67,23 @@ interface SubTask {
   duration: number;
 }
 
+// ===== v1.1 第二期：复盘 =====
+interface ReviewDistItem {
+  project_id: string;
+  name: string;
+  color: string;
+  count: number;
+}
+interface WeekReview {
+  week_start: number;
+  done_count: number;
+  distribution: ReviewDistItem[];
+  top_project: ReviewDistItem | null;
+  skip_counts: { 没状态: number; 等待外部: number; 临时取消: number };
+  skip_total: number;
+  duration_bias: { sample: number; est_minutes: number; act_minutes: number; ratio: number };
+}
+
 interface ParseResult {
   is_big_task: boolean;
   action: string;
