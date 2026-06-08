@@ -21,31 +21,49 @@ function fakeParse(text: string, allowSplit = false, forcePlan = false) {
   const tag = t.length > 6 ? t.slice(0, 4) : '日常';
   const dur = [15, 30, 45, 60][t.length % 4];
   const goal = t.slice(0, 100);
-  // 开关开启(force_plan)：强制拆成 3 个动词开头的小步，模拟线上 force_plan 行为
-  if (allowSplit || forcePlan) {
+  const single = {
+    is_big_task: false, action: goal, duration: dur, project_tag: tag,
+    vision_statement: '', is_new_project: !mem.projects[tag], subtasks: [],
+  };
+  // 关闭拆解开关：永远单条
+  if (!allowSplit && !forcePlan) return single;
+
+  // 数量型：含「N 篇/个/次/章/集/章节」→ 按数量拆成 N 个独立单元
+  const numMatch = t.match(/([0-9一二两三四五六七八九十]+)\s*(篇|个|条|次|章|集|份|节)/);
+  const cnMap: Record<string, number> = { 一: 1, 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+  const n = numMatch ? (Number(numMatch[1]) || cnMap[numMatch[1]] || 0) : 0;
+  if (n >= 2 && n <= 5) {
+    const unit = numMatch![2];
+    const thing = t.replace(numMatch![0], '').replace(/^(发布|写|做|完成|发)/, '') || goal;
     return {
-      is_big_task: true,
-      action: goal,
-      duration: 90,
-      project_tag: tag,
-      vision_statement: '迈出这一步，项目就活了',
-      is_new_project: !mem.projects[tag],
-      subtasks: [
-        { action: `梳理「${goal}」要准备什么`, duration: 30 },
-        { action: `动手做「${goal}」的第一版`, duration: 45 },
-        { action: `检查并收尾「${goal}」`, duration: 30 },
-      ],
+      is_big_task: true, action: goal, duration: nearestDurMock(n * 30), project_tag: tag,
+      vision_statement: '一件一件来，做完就是赚到', is_new_project: !mem.projects[tag],
+      subtasks: Array.from({ length: n }, (_, i) => ({
+        action: `完成第${i + 1}${unit}：${thing.trim()}`, duration: 30,
+      })),
     };
   }
+
+  // 原子小事：短文本且无「项目/方案/上线」等大事词 → 不拆，诚实告知够小
+  const bigWords = /(项目|方案|上线|筹备|系统|完整|策划|搭建|重构)/;
+  if (t.length <= 8 && !bigWords.test(t)) {
+    return { ...single, vision_statement: '' };
+  }
+
+  // 阶段型：拆成带具体产出物的步骤（mock 占位，线上由 AI 生成更贴合）
   return {
-    is_big_task: false,
-    action: goal,
-    duration: dur,
-    project_tag: tag,
-    vision_statement: '',
-    is_new_project: !mem.projects[tag],
-    subtasks: [],
+    is_big_task: true, action: goal, duration: 90, project_tag: tag,
+    vision_statement: '迈出第一步，这件事就活了', is_new_project: !mem.projects[tag],
+    subtasks: [
+      { action: `列出「${goal}」要交付的具体内容清单`, duration: 30 },
+      { action: `产出「${goal}」的第一版成品`, duration: 45 },
+      { action: `打磨并交付「${goal}」`, duration: 30 },
+    ],
   };
+}
+function nearestDurMock(d: number) {
+  return [15, 30, 45, 60, 75, 90, 105, 120].reduce((p, c) => (Math.abs(c - d) < Math.abs(p - d) ? c : p), 60);
+}
 }
 
 function delay<T>(data: T, ms = 300): Promise<T> {

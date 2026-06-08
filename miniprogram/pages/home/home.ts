@@ -198,8 +198,8 @@ Page({
   async doParse(text: string) {
     this.setData({ parsing: true });
     try {
-      // 开关开启=用户明确要拆 → force_plan 强制拆成 3~5 步（不再由 AI 自行判断大小事）
-      const card = await api.parseTask(text, this.data.allowSplit, this.data.allowSplit);
+      // 开关开=允许拆，但由 AI 按「拿不准就不拆/拆就带产出物」规则判断，不强制拆（force_plan=false）
+      const card = await api.parseTask(text, this.data.allowSplit, false);
       // 强制打开面板：避免旧请求超时关闭面板后，新数据回来却无处显示
       this.setData({ parseCard: card, showInput: true });
     } finally {
