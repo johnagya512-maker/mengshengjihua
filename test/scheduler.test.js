@@ -92,5 +92,31 @@ const r8 = schedule({
 });
 eq('numeric skipStats still works', r8.ordered_tasks[0].task_id, 'b');
 
+// 8. 已完成时长从可用容量扣除（修复容量重复计账）：6h=288min 容量，已用 270min，仅剩 18min
+const r9 = schedule({
+  profile: { ideal_work_hours: 6, peak_hours: [] },
+  nowMinute: 540,
+  usedMinutes: 270,
+  tasks: [
+    { task_id: 'a', duration: 30, created_at: 1 }, // 30 > 剩余18 → 溢出
+    { task_id: 'b', duration: 15, created_at: 2 }, // 15 <= 18 → 排入
+  ],
+});
+eq('used capacity deducted: a overflows', r9.overflow_tasks[0].task_id, 'a');
+eq('used capacity deducted: b fits', r9.ordered_tasks[0].task_id, 'b');
+eq('used capacity deducted: only 15 scheduled', r9.daily_capacity_used, 15);
+
+// 9. 越午夜不回绕：22:00(1320) 起排，120min 任务会越过 24:00 → 溢出而非显示成 00:00
+const r10 = schedule({
+  profile: { ideal_work_hours: 12, peak_hours: [] }, // 容量足够大，仅测午夜边界
+  nowMinute: 1320,
+  tasks: [
+    { task_id: 'a', duration: 90, created_at: 1 },  // 1320+90=1410(23:30) ok
+    { task_id: 'b', duration: 60, created_at: 2 },  // 1410+60=1470 > 1440 → 溢出
+  ],
+});
+eq('midnight: a scheduled', r10.ordered_tasks[0].scheduled_time, '22:00');
+eq('midnight: b overflows not wraps', r10.overflow_tasks[0].task_id, 'b');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

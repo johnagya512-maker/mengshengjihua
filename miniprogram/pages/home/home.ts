@@ -4,7 +4,7 @@ import { isLoggedIn } from '../../utils/auth';
 import {
   cacheTasks, getCachedTasks, cacheCapacity, getCachedCapacity,
   stashInput, drainInputs, hasPendingInput, drainProfile,
-  drainCompletes, hasPendingComplete,
+  stashComplete, drainCompletes, hasPendingComplete,
   getActiveTask, clearActiveTask,
 } from '../../utils/store';
 import { getUserId } from '../../utils/auth';
@@ -79,7 +79,10 @@ Page({
     // 离线完成状态回放（TC-012）
     if (hasPendingComplete()) {
       const items = drainCompletes();
-      for (const p of items) { try { await api.completeTask(p); } catch (e) { /* 失败重新入队 */ } }
+      for (const p of items) {
+        try { await api.completeTask(p); }
+        catch (e) { stashComplete(p); /* 回放失败：写回队列，下次再试，避免完成记录丢失 */ }
+      }
     }
     if (hasPendingInput()) {
       wx.showToast({ title: '有一条任务还没处理', icon: 'none' });

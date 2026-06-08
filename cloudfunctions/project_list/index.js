@@ -59,6 +59,7 @@ exports.main = async () => {
 
     return ok({ projects });
   } catch (e) {
-    return fail(500, '加载失败: ' + e.message);
+    console.error('project_list 失败:', e);
+    return fail(500, '加载失败，请重试');
   }
 };

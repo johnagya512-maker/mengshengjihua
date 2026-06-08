@@ -12,7 +12,11 @@ const DURATION_ENUM = [15, 30, 45, 60, 75, 90, 105, 120];
 function sanitize(text) {
   if (typeof text !== 'string') return '';
   let s = text.trim().slice(0, 500).replace(/<[^>]*>/g, '');
+  // 中和常见 prompt 注入（中英文）：忽略指令、角色改写、系统提示词探测
   s = s.replace(/ignore\s+(previous|above|all)\s+instructions/gi, '[已过滤]');
+  s = s.replace(/(忽略|无视|忘记)(以上|上述|之前|前面)?(的)?(所有)?(指令|指示|提示|要求)/g, '[已过滤]');
+  s = s.replace(/(你现在是|从现在起你是|扮演|假装你是|now you are|you are now)/gi, '[已过滤]');
+  s = s.replace(/(系统提示词?|system\s*prompt|开发者模式|developer\s*mode)/gi, '[已过滤]');
   return s;
 }
 function isValidTaskInput(t) {
@@ -56,6 +60,7 @@ const SYS_PROMPT = `你是「闷声计划」的任务解析助手。把用户的
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
+  if (!OPENID) return fail(400, '登录态无效'); // 守卫：未登录不得触发付费 AI 调用
   const raw = event.input_text;
   const allowSplit = !!event.allow_split; // 默认不拆分：快速建单条
   if (!isValidTaskInput(raw)) return fail(422, '没太理解，能再说清楚一点吗？');

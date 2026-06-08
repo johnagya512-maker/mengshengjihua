@@ -60,10 +60,12 @@ function biasedDuration(task, durationBias) {
 }
 
 function schedule(ctx) {
-  const { tasks = [], profile = {}, nowMinute = 540, skipStats = {} } = ctx;
+  const { tasks = [], profile = {}, nowMinute = 540, skipStats = {}, usedMinutes = 0 } = ctx;
   const peakRanges = (profile.peak_hours || []).map(parseRange);
   const capacityTotal = dailyCapacity(profile.ideal_work_hours || 6);
   const durationBias = profile.duration_bias || null;
+  // 待办可用容量 = 总容量 - 今日已完成时长，避免与已完成重复计账（否则 capUsed 可超总量）
+  const available = Math.max(0, capacityTotal - usedMinutes);
 
   // 排序：紧急度 > 命中高峰(可填入高峰优先) > 历史跳过少 > 创建早
   const sorted = [...tasks].sort((a, b) => {
@@ -81,7 +83,8 @@ function schedule(ctx) {
 
   for (const t of sorted) {
     const dur = biasedDuration(t, durationBias);
-    if (used + dur > capacityTotal) {
+    // 容量已满，或排到此任务会越过午夜 → 溢出，不静默回绕到次日凌晨
+    if (used + dur > available || cursor + dur > MINUTES_IN_DAY) {
       overflow.push({ ...t, reason: 'capacity_full' });
       continue;
     }
@@ -102,6 +105,8 @@ function schedule(ctx) {
     daily_capacity_total: capacityTotal,
   };
 }
+
+const MINUTES_IN_DAY = 24 * 60;
 
 function minToHHmm(min) {
   const h = Math.floor(min / 60) % 24;

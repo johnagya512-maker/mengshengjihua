@@ -43,7 +43,8 @@ exports.main = async (event) => {
       projectId = inbox.project_id;
       projectTag = '随手记';
     }
-    const task_id = `t_${Date.now()}`;
+    // task_id 加随机后缀：子任务批量保存可能落在同毫秒，纯时间戳会碰撞
+    const task_id = `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     await db.collection('tasks').add({
       data: {
         _openid: OPENID, task_id, project_id: projectId, project_tag: projectTag,
@@ -56,6 +57,7 @@ exports.main = async (event) => {
     });
     return ok({ task_id, project_id: projectId });
   } catch (e) {
-    return fail(500, '保存失败: ' + e.message);
+    console.error('task_save 失败:', e);
+    return fail(500, '保存失败，请重试');
   }
 };

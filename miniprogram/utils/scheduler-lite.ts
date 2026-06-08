@@ -29,19 +29,31 @@ function skipScore(entry: number | Record<string, number> | undefined): number {
   }, 0);
 }
 
+// 应用隐形学习的耗时偏差校正（规则3），与云端 scheduler.js 保持一致。
+// duration_bias 是全局系数（实际/预估中位值），有则放大/缩小预估耗时，无则原样返回。
+function biasedDuration(task: any, durationBias: number | null): number {
+  const raw = task.duration || 30;
+  if (!durationBias) return raw;
+  return Math.round(raw * durationBias);
+}
+
+const MINUTES_IN_DAY = 24 * 60;
+
 interface SchedInput {
   tasks: any[];
   profile: { peak_hours?: string[]; ideal_work_hours?: number; focus_tolerance?: number; duration_bias?: number };
   nowMinute?: number;
   skipStats?: Record<string, number | Record<string, number>>;
+  usedMinutes?: number; // 今日已完成时长，从可用容量中先扣除
 }
 
 export function schedule(ctx: SchedInput) {
-  const { tasks = [], profile = {}, nowMinute = 540, skipStats = {} } = ctx;
+  const { tasks = [], profile = {}, nowMinute = 540, skipStats = {}, usedMinutes = 0 } = ctx;
   const peakRanges = (profile.peak_hours || []).map(parseRange);
   const capacityTotal = dailyCapacity(profile.ideal_work_hours || 6);
-  // 治愈间隙阈值：优先用用户单次专注耐受，未设置回退默认（与云端 scheduler.js 一致）
-  const fatigueThreshold = profile.focus_tolerance || FATIGUE_THRESHOLD;
+  const durationBias = profile.duration_bias || null;
+  // 待办可用容量 = 总容量 - 今日已完成，避免与已完成时长重复计账
+  const available = Math.max(0, capacityTotal - usedMinutes);
 
   const sorted = [...tasks].sort((a, b) => {
     if (!!b.is_priority !== !!a.is_priority) return b.is_priority ? 1 : -1;
@@ -55,8 +67,12 @@ export function schedule(ctx: SchedInput) {
   let cursor = nowMinute, used = 0;
 
   for (const t of sorted) {
-    const dur = t.duration || 30;
-    if (used + dur > capacityTotal) { overflow.push({ ...t, reason: 'capacity_full' }); continue; }
+    const dur = biasedDuration(t, durationBias);
+    // 容量已满，或排到此任务会越过午夜 → 溢出，不静默回绕到次日凌晨
+    if (used + dur > available || cursor + dur > MINUTES_IN_DAY) {
+      overflow.push({ ...t, reason: 'capacity_full' });
+      continue;
+    }
     ordered.push({ ...t, type: 'normal', scheduled_time: minToHHmm(cursor), in_peak: inPeak(cursor, peakRanges) });
     cursor += dur; used += dur;
   }

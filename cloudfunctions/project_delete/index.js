@@ -21,6 +21,7 @@ exports.main = async (event) => {
     await db.collection('projects').where({ _openid: OPENID, project_id }).remove();
     return ok({ deleted: true });
   } catch (e) {
-    return fail(500, '删除失败: ' + e.message);
+    console.error('project_delete 失败:', e);
+    return fail(500, '删除失败，请重试');
   }
 };

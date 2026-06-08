@@ -26,6 +26,7 @@ exports.main = async (event) => {
     await projCol.add({ data: { _openid: OPENID, project_id, name, color, created_at: Date.now() } });
     return ok({ project_id, name, color, existed: false });
   } catch (e) {
-    return fail(500, '创建失败: ' + e.message);
+    console.error('project_create 失败:', e);
+    return fail(500, '创建失败，请重试');
   }
 };

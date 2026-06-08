@@ -18,6 +18,7 @@ exports.main = async (event) => {
     if (!res.stats || res.stats.removed === 0) return fail(404, '任务不存在');
     return ok({ deleted: true });
   } catch (e) {
-    return fail(500, '删除失败: ' + e.message);
+    console.error('task_delete 失败:', e);
+    return fail(500, '删除失败，请重试');
   }
 };

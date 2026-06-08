@@ -21,10 +21,22 @@ exports.main = async (event) => {
     const res = await tasks.where({ _openid: OPENID, task_id }).get();
     if (res.data.length === 0) return fail(422, '任务不存在');
 
-    await tasks.doc(res.data[0]._id).update({
+    const task = res.data[0];
+    // 幂等保护：已完成/已跳过的任务再次提交（离线回放、网络重试）直接返回，
+    // 不重复刷新 finished_at、不重复写 skip_logs，避免容量虚高与回避分被放大。
+    if (task.status === 'done' || task.status === 'skip') {
+      const nextRes = await tasks
+        .where({ _openid: OPENID, status: 'pending' })
+        .orderBy('scheduled_time', 'asc')
+        .limit(1)
+        .get();
+      return ok({ success: true, idempotent: true, next_task_id: nextRes.data[0]?.task_id || '' });
+    }
+
+    await tasks.doc(task._id).update({
       data: {
         status: result === 'complete' ? 'done' : 'skip',
-        actual_duration: Number(actual_duration) || res.data[0].duration,
+        actual_duration: Number(actual_duration) || task.duration,
         ...(result === 'skip' ? { skip_reason } : {}),
         finished_at: Date.now(),
       },
@@ -47,6 +59,7 @@ exports.main = async (event) => {
 
     return ok({ success: true, next_task_id });
   } catch (e) {
-    return fail(500, '提交失败: ' + e.message);
+    console.error('task_complete 失败:', e);
+    return fail(500, '提交失败，请重试');
   }
 };

@@ -1,6 +1,6 @@
 // cloudfunctions/schedule_compute/index.js — 排期引擎云函数
 const cloud = require('wx-server-sdk');
-const { schedule, dailyCapacity } = require('./scheduler');
+const { schedule, dailyCapacity, parseRange } = require('./scheduler');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
@@ -65,11 +65,14 @@ exports.main = async (event) => {
       .get();
     const done_tasks = historyRes.data;
 
-    const nowMin = trigger === 'daily_init'
-      ? (profile.peak_hours[0] ? parseInt(profile.peak_hours[0], 10) * 60 : 540)
-      : nowMinuteCST();
+    // daily_init 用高峰起点作为一天起排时刻；正确解析 "HH:mm-HH:mm"（parseInt 会丢分钟）
+    const peakStart = Array.isArray(profile.peak_hours) && profile.peak_hours[0]
+      ? parseRange(profile.peak_hours[0])[0]
+      : 540;
+    const nowMin = trigger === 'daily_init' ? peakStart : nowMinuteCST();
 
-    const result = schedule({ tasks, profile, nowMinute: nowMin, skipStats });
+    // 把今日已完成时长传入排期，待办容量从中扣除，避免与 usedDone 重复计账
+    const result = schedule({ tasks, profile, nowMinute: nowMin, skipStats, usedMinutes: usedDone });
 
     // 5. 持久化排期时间（静默更新）
     const updates = result.ordered_tasks
