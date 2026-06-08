@@ -244,9 +244,24 @@ Page({
     } catch (e) { /* 提示已由 request 层弹出 */ }
   },
 
-  // 容量饱和确认
-  confirmMoveTomorrow() { this.setData({ overflowTask: null }); }, // 已在次日队列，无需操作
-  forceToday() { this.setData({ overflowTask: null }); /* 强制加入由后端策略处理 */ },
+  // 容量饱和确认：移次日 —— 真正把任务标记到次日队列，跨天后自动回归今日
+  async confirmMoveTomorrow() {
+    const t = this.data.overflowTask;
+    this.setData({ overflowTask: null });
+    if (!t) return;
+    try {
+      await api.deferTask(t.task_id);
+      // 从今日列表移除该任务，刷新容量
+      const rest = this.data.tasks.filter((x) => x.task_id !== t.task_id);
+      this.applyTasks(rest);
+      cacheTasks(rest);
+      wx.showToast({ title: '已移到明天', icon: 'none', duration: 1200 });
+    } catch (e) {
+      wx.showToast({ title: '移动失败，任务留在今天', icon: 'none' });
+    }
+  },
+  // 强制今天：不移走，溢出任务留在今日末尾（用户自行承担超载）
+  forceToday() { this.setData({ overflowTask: null }); },
 
   // 开始执行 → 跳转专注页
   startTask() {

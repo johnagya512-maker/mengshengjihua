@@ -62,7 +62,8 @@ export function mockCall(name: string, data: any): Promise<any> {
     }
 
     case 'schedule_compute': {
-      const pending = mem.tasks.filter((t) => t.status === 'pending');
+      // 与云端一致：排除被移到次日的任务（scheduled_date 标记）
+      const pending = mem.tasks.filter((t) => t.status === 'pending' && t.scheduled_date !== 'tomorrow');
       const r = schedule({ tasks: pending, profile: PROFILE, nowMinute: 540, skipStats: mem.skipStats });
       r.ordered_tasks.forEach((ot: any) => {
         const t = mem.tasks.find((x) => x.task_id === ot.task_id);
@@ -93,6 +94,27 @@ export function mockCall(name: string, data: any): Promise<any> {
       }
       const next = mem.tasks.find((x) => x.status === 'pending');
       return delay({ success: true, next_task_id: next?.task_id || '' });
+    }
+
+    case 'task_defer': {
+      const t = mem.tasks.find((x) => x.task_id === data.task_id);
+      // 与云端一致：保持 pending，写次日标记，由 schedule_compute 的日期过滤排除出今日
+      if (t) { t.scheduled_date = 'tomorrow'; t.scheduled_time = ''; }
+      return delay({ deferred: !!t, scheduled_date: 'tomorrow' });
+    }
+
+    case 'task_delete': {
+      mem.tasks = mem.tasks.filter((x) => x.task_id !== data.task_id);
+      return delay({ deleted: true });
+    }
+
+    case 'project_delete': {
+      const proj = Object.values(mem.projects).find((p) => p.project_id === data.project_id);
+      if (proj) {
+        mem.tasks = mem.tasks.filter((x) => x.project_id !== data.project_id);
+        delete mem.projects[proj.name];
+      }
+      return delay({ deleted: !!proj });
     }
 
     case 'project_list': {

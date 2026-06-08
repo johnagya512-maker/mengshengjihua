@@ -32,6 +32,7 @@ interface Task {
   type: TaskType;
   status: TaskStatus;
   scheduled_time: string;      // ISO 或 HH:mm
+  scheduled_date?: string;     // YYYY-MM-DD，被移到次日时写入；空=今日队列
   actual_duration?: number;
   skip_reason?: SkipReason;
   is_priority?: boolean;       // P0 紧急

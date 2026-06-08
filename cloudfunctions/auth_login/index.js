@@ -1,15 +1,24 @@
 // cloudfunctions/auth_login/index.js — 微信授权登录
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 function ok(data) { return { code: 200, data }; }
 function fail(code, msg) { return { code, msg }; }
 
-// 简易 token：openid + 过期戳 的 base64（生产建议 JWT+签名）
+// HMAC-SHA256 签名 token：payload=openid.exp，附签名防伪造。
+// 密钥从环境变量 TOKEN_SECRET 读取（部署时在云开发控制台配置）。
+// 注意：真正的鉴权基线仍是 getWXContext().OPENID（云端注入、不可伪造）；
+// 本 token 用于需要在 payload 中携带过期信息、且可被服务端校验的场景。
+function tokenSecret() {
+  return process.env.TOKEN_SECRET || 'mengsheng-dev-secret-change-me';
+}
 function signToken(openid) {
   const exp = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  return Buffer.from(`${openid}.${exp}`).toString('base64');
+  const payload = `${openid}.${exp}`;
+  const sig = crypto.createHmac('sha256', tokenSecret()).update(payload).digest('base64url');
+  return Buffer.from(`${payload}.${sig}`).toString('base64');
 }
 
 // 新用户默认 Profile（无引导，安全种子；之后由隐形学习校正）

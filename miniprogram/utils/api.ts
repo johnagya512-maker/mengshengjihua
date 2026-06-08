@@ -41,6 +41,11 @@ export const api = {
     return callCloud('task_delete', { task_id });
   },
 
+  // 容量饱和：把任务移到次日队列（跨天后自动回归今日）
+  deferTask(task_id: string): Promise<{ deferred: boolean; scheduled_date: string }> {
+    return callCloud('task_defer', { task_id });
+  },
+
   listProjects(): Promise<{ projects: Project[] }> {
     return callCloud('project_list');
   },

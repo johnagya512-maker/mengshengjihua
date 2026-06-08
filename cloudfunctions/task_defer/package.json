@@ -1,0 +1,7 @@
+{
+  "name": "task_defer",
+  "version": "1.0.0",
+  "description": "把任务移到次日队列",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "~2.6.3" }
+}

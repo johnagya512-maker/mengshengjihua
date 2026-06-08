@@ -30,7 +30,7 @@
 ### 2.1 已完成（代码 + 验证）
 - 微信 openid 登录，首登静默建用户 + 默认 Profile
 - 任务输入 → AI 解析（task_parse / DeepSeek）→ 确认卡片 → 写队列
-- 排期引擎：80% 缓冲、高峰优先、疲劳间隙、容量饱和移次日（算法测试 9/9）
+- 排期引擎：80% 缓冲、高峰优先、容量饱和移次日（算法测试覆盖）
 - 专注计时：耗时微调、完成 / 跳过 + 归因、中断恢复
 - 项目圆环 + 任务点流
 - 离线暂存（输入 / 完成）自动回放
@@ -48,6 +48,7 @@
 
 | 功能 | 放到 | 为什么不进 MVP |
 |------|------|--------------|
+| 治愈间隙 / 疲劳补偿（≥90min 自动插 10min gap） | P2 | 排期引擎暂未实现；常量 FATIGUE_THRESHOLD/HEAL_GAP_DURATION 已预留但未启用 |
 | 隐形学习 P2：高峰反推、间隙节奏个人化 | P2 | 需 2~3 周行为数据才有意义 |
 | profile_learn 定时学习 + 探索/利用护栏 | P2 | 同上 |
 | 督学模式（会员功能） | P2 | 依赖学习成熟，且需先验证核心 |
@@ -75,9 +76,10 @@ guide（登录）──登录即进──> home（今日）
 
 ## 5. 上线前检查清单（合规 + 配置）
 
-- [ ] 11 个云函数全部部署（auth_login / profile_init / profile_learn / project_create / project_delete / project_list / schedule_compute / task_complete / task_delete / task_parse / task_save）
+- [ ] 12 个云函数全部部署（auth_login / profile_init / profile_learn / project_create / project_delete / project_list / schedule_compute / task_complete / task_defer / task_delete / task_parse / task_save）
 - [ ] 6 个数据库集合 + 安全规则「仅创建者可读写」
 - [ ] task_parse 配 DEEPSEEK_API_KEY 环境变量
+- [ ] auth_login 配 TOKEN_SECRET 环境变量（HMAC 签名密钥，勿用默认值）
 - [ ] 微信公众平台填《用户隐私保护指引》（声明收集 openid、任务内容）
 - [ ] 登录页加隐私政策链接 + 「继续即同意」小字
 - [ ] 语音插件：用真实 appid 在公众平台授权 WechatSI（不授权则降级，不阻断）

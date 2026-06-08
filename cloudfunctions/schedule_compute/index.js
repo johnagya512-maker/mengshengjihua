@@ -34,11 +34,13 @@ exports.main = async (event) => {
     const profRes = await db.collection('profiles').where({ _openid: OPENID }).get();
     const profile = profRes.data[0] || { ideal_work_hours: 6, peak_hours: [] };
 
-    // 2. 取今日 pending 任务
+    // 2. 取 pending 任务，排除被移到「未来日期」的（容量饱和移次日）。
+    //    scheduled_date 为空或 <= 今天的才进入今日队列；跨天后次日任务自然回归。
+    const today = todayStr();
     const taskRes = await db.collection('tasks')
       .where({ _openid: OPENID, status: 'pending', type: _.neq('gap') })
       .get();
-    const tasks = taskRes.data;
+    const tasks = taskRes.data.filter((t) => !t.scheduled_date || t.scheduled_date <= today);
 
     // 3. 历史跳过统计（隐形学习规则5）：按任务分桶归因，供排期加权
     //    { task_id: { 没状态: n, 等待外部: n, 临时取消: n } }
