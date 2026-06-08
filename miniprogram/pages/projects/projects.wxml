@@ -1,17 +1,41 @@
 <view class="projects">
-  <view class="projects__title">项目</view>
+  <view class="projects__head">
+    <view class="projects__title">项目</view>
+    <view class="projects__add" bindtap="openCreate">＋ 新建</view>
+  </view>
 
   <view wx:if="{{loading}}" class="projects__loading">加载中…</view>
-  <view wx:elif="{{projects.length === 0}}" class="projects__empty">完成任务后，项目会自动出现在这里</view>
+  <view wx:elif="{{projects.length === 0}}" class="projects__empty">还没有项目，点右上角「＋ 新建」开始</view>
 
   <view wx:else class="projects__grid">
     <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
-      <view class="ring-item__canvas-wrap">
-        <canvas type="2d" id="ring-{{item.project_id}}" class="ring-item__canvas"></canvas>
-        <view class="ring-item__percent">{{item.percent}}%</view>
-      </view>
-      <view class="ring-item__name">{{item.name}}</view>
-      <view class="ring-item__count">{{item.completed_tasks}}/{{item.total_tasks}}</view>
+      <!-- streak 持续型：不显示进度圆环，显示势头 -->
+      <block wx:if="{{item.mode === 'streak'}}">
+        <view class="streak">
+          <view class="streak__days">{{item.streak_days || 0}}</view>
+          <view class="streak__label">连续达标天</view>
+        </view>
+        <view class="ring-item__name">{{item.name}}</view>
+        <view class="ring-item__count">本周 {{item.week_met_days || 0}}/7 · 累计 {{item.total_done || 0}} 件</view>
+      </block>
+      <!-- result 结果型：数值进度条 -->
+      <block wx:elif="{{item.mode === 'result'}}">
+        <view class="result">
+          <view class="result__val">{{item.current_value || 0}}<text class="result__unit">{{item.goal_unit}}</text></view>
+          <view class="result__bar"><view class="result__fill" style="width:{{item.percent}}%;background:{{item.color}}"></view></view>
+          <view class="result__goal">目标 {{item.goal_target}}{{item.goal_unit}}</view>
+        </view>
+        <view class="ring-item__name">{{item.name}}</view>
+      </block>
+      <!-- count 有限型（含旧数据/随手记）：沿用圆环 -->
+      <block wx:else>
+        <view class="ring-item__canvas-wrap">
+          <canvas type="2d" id="ring-{{item.project_id}}" class="ring-item__canvas"></canvas>
+          <view class="ring-item__percent">{{item.percent}}%</view>
+        </view>
+        <view class="ring-item__name">{{item.name}}</view>
+        <view class="ring-item__count">{{item.completed_tasks}}{{item.goal_target ? '/' + item.goal_target : '/' + item.total_tasks}}</view>
+      </block>
 
       <view wx:if="{{activeId === item.project_id}}" class="dots">
         <block wx:for="{{activeGroups}}" wx:for-item="g" wx:key="index">
@@ -30,4 +54,45 @@
       </view>
     </view>
   </view>
+
+  <!-- 新建项目面板 -->
+  <view wx:if="{{showCreate}}" class="modal-mask" bindtap="closeCreate">
+    <view class="modal" catchtap="stopPropagation">
+      <view class="modal__title">新建项目</view>
+      <input class="modal__input" placeholder="项目名，如：视频号运营" value="{{newName}}" bindinput="onNameInput" maxlength="30" />
+
+      <view class="modal__label">用什么来衡量推进</view>
+      <view class="mode-tabs">
+        <view class="mode-tab {{newMode === 'count' ? 'mode-tab--on' : ''}}" data-mode="count" bindtap="pickMode">
+          <view class="mode-tab__name">计数</view>
+          <view class="mode-tab__desc">有终点，如读100本书</view>
+        </view>
+        <view class="mode-tab {{newMode === 'streak' ? 'mode-tab--on' : ''}}" data-mode="streak" bindtap="pickMode">
+          <view class="mode-tab__name">坚持</view>
+          <view class="mode-tab__desc">持续运营，如日更视频</view>
+        </view>
+        <view class="mode-tab {{newMode === 'result' ? 'mode-tab--on' : ''}}" data-mode="result" bindtap="pickMode">
+          <view class="mode-tab__name">数值</view>
+          <view class="mode-tab__desc">数字目标，如涨粉到1万</view>
+        </view>
+      </view>
+
+      <block wx:if="{{newMode === 'count'}}">
+        <input class="modal__input" type="number" placeholder="目标件数，如 100" value="{{newGoal}}" bindinput="onGoalInput" />
+      </block>
+      <block wx:elif="{{newMode === 'streak'}}">
+        <input class="modal__input" type="number" placeholder="每日标准，如 1（日更1个）" value="{{newQuota}}" bindinput="onQuotaInput" />
+      </block>
+      <block wx:elif="{{newMode === 'result'}}">
+        <input class="modal__input" type="number" placeholder="目标数值，如 10000" value="{{newGoal}}" bindinput="onGoalInput" />
+        <input class="modal__input" placeholder="单位，如 元 / 粉丝" value="{{newUnit}}" bindinput="onUnitInput" maxlength="10" />
+      </block>
+
+      <view class="modal__actions">
+        <view class="modal__btn modal__btn--ghost" bindtap="closeCreate">取消</view>
+        <view class="modal__btn modal__btn--primary" bindtap="submitCreate">创建</view>
+      </view>
+    </view>
+  </view>
 </view>
+

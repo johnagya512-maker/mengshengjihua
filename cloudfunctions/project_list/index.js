@@ -6,6 +6,45 @@ const db = cloud.database();
 function ok(data) { return { code: 200, data }; }
 function fail(code, msg) { return { code, msg }; }
 
+// 东八区日期 YYYY-MM-DD
+function cstDate(ms) {
+  return new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+// 本周一 0 点的时间戳（东八区），用于「本周达标」统计
+function weekStartMs() {
+  const now = Date.now();
+  const d = new Date(now + 8 * 3600 * 1000);
+  const dow = (d.getUTCDay() + 6) % 7; // 周一=0
+  const monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow);
+  return monday - 8 * 3600 * 1000;
+}
+
+// streak 推进指标：连续达标天数 / 本周达标天数 / 累计完成件数
+// daily_quota = 每日标准件数（如日更1个）。当天完成数 >= quota 即「达标」。
+function streakMetrics(doneList, dailyQuota) {
+  const quota = dailyQuota > 0 ? dailyQuota : 1;
+  const byDay = {};
+  doneList.forEach((t) => {
+    if (!t.finished_at) return;
+    const day = cstDate(t.finished_at);
+    byDay[day] = (byDay[day] || 0) + 1;
+  });
+  const metDays = Object.keys(byDay).filter((d) => byDay[d] >= quota).sort(); // 达标日，升序
+  // 连续达标天数：从今天或昨天往前数连续达标的天
+  let streak = 0;
+  const oneDay = 86400 * 1000;
+  let cursor = Date.now();
+  const todayStr = cstDate(cursor);
+  const metSet = new Set(metDays);
+  // 今天没达标不立刻断（还没过完），从今天起：今天达标算1，否则从昨天起算
+  if (!metSet.has(todayStr)) cursor -= oneDay;
+  while (metSet.has(cstDate(cursor))) { streak += 1; cursor -= oneDay; }
+  // 本周达标天数
+  const wkStart = weekStartMs();
+  const weekMet = metDays.filter((d) => new Date(d + 'T00:00:00+08:00').getTime() >= wkStart).length;
+  return { streak_days: streak, week_met_days: weekMet, total_done: doneList.length };
+}
+
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) return fail(400, '登录态无效');
@@ -14,7 +53,7 @@ exports.main = async () => {
     const projRes = await db.collection('projects').where({ _openid: OPENID }).get();
     const taskRes = await db.collection('tasks')
       .where({ _openid: OPENID })
-      .field({ task_id: true, action: true, status: true, project_id: true, parent_task_id: true, parent_action: true })
+      .field({ task_id: true, action: true, status: true, project_id: true, parent_task_id: true, parent_action: true, finished_at: true })
       .get();
 
     const tasksByProject = {};
@@ -22,6 +61,7 @@ exports.main = async () => {
       (tasksByProject[t.project_id] = tasksByProject[t.project_id] || []).push({
         task_id: t.task_id, action: t.action, status: t.status,
         parent_task_id: t.parent_task_id || '', parent_action: t.parent_action || '',
+        finished_at: t.finished_at || 0,
       });
     });
 
@@ -45,16 +85,28 @@ exports.main = async () => {
 
     const projects = projRes.data.map((p) => {
       const list = tasksByProject[p.project_id] || [];
-      const completed = list.filter((t) => t.status === 'done').length;
-      return {
+      const doneList = list.filter((t) => t.status === 'done');
+      const completed = doneList.length;
+      const mode = p.mode || 'count';
+      const base = {
         project_id: p.project_id,
         name: p.name,
         color: p.color,
+        mode,
+        goal_target: p.goal_target || null,
+        daily_quota: p.daily_quota || null,
+        goal_unit: p.goal_unit || '',
+        cycle: p.cycle || 'none',
+        current_value: p.current_value || 0,
         total_tasks: list.length,
         completed_tasks: completed,
         groups: groupByParent(list),
         tasks: list,
       };
+      if (mode === 'streak') {
+        return { ...base, ...streakMetrics(doneList, p.daily_quota) };
+      }
+      return base;
     });
 
     return ok({ projects });

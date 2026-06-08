@@ -51,8 +51,15 @@ export const api = {
     return callCloud('project_list');
   },
 
-  createProject(name: string): Promise<{ project_id: string; name: string; color: string; existed: boolean }> {
-    return callCloud('project_create', { name });
+  createProject(p: {
+    name: string;
+    mode?: ProjectMode;
+    goal_target?: number;
+    daily_quota?: number;
+    goal_unit?: string;
+    cycle?: 'month' | 'week' | 'none';
+  }): Promise<{ project_id: string; name: string; color: string; mode: ProjectMode; existed: boolean }> {
+    return callCloud('project_create', p);
   },
 
   deleteProject(project_id: string): Promise<{ deleted: boolean }> {

@@ -7,6 +7,13 @@ Page({
     activeId: '',                // 展开的项目
     activeGroups: [] as any[],   // 展开项目的任务分组（大事归组 + 独立任务）
     loading: true,
+    // 新建项目面板
+    showCreate: false,
+    newName: '',
+    newMode: 'count' as ProjectMode,   // count / streak / result
+    newGoal: '',                       // count 目标件数 / result 目标数值
+    newQuota: '',                      // streak 每日标准
+    newUnit: '',                       // result 单位
   },
 
   onShow() { this.load(); },
@@ -14,12 +21,13 @@ Page({
   async load() {
     try {
       const r = await api.listProjects();
-      const projects = r.projects.map((p) => ({
-        ...p,
-        percent: p.total_tasks ? Math.round((p.completed_tasks / p.total_tasks) * 100) : 0,
-      }));
+      // count 圆环分母改用 goal_target（无目标则回退 total_tasks，兼容旧数据/随手记）
+      const projects = r.projects.map((p) => {
+        const denom = (p.mode === 'count' || !p.mode) && p.goal_target ? p.goal_target : p.total_tasks;
+        return { ...p, percent: denom ? Math.min(100, Math.round((p.completed_tasks / denom) * 100)) : 0 };
+      });
       this.setData({ projects, loading: false });
-      this.drawRings(projects);
+      this.drawRings(projects.filter((p) => p.mode === 'count' || !p.mode));
     } catch (e) {
       this.setData({ loading: false });
     }
@@ -78,5 +86,44 @@ Page({
         }
       },
     });
+  },
+
+  // ---- 新建项目 ----
+  openCreate() {
+    this.setData({ showCreate: true, newName: '', newMode: 'count', newGoal: '', newQuota: '', newUnit: '' });
+  },
+  closeCreate() { this.setData({ showCreate: false }); },
+  stopPropagation() {}, // 拦截面板内点击冒泡到遮罩
+
+  onNameInput(e: WechatMiniprogram.Input) { this.setData({ newName: e.detail.value }); },
+  pickMode(e: WechatMiniprogram.TouchEvent) {
+    this.setData({ newMode: e.currentTarget.dataset.mode as ProjectMode });
+  },
+  onGoalInput(e: WechatMiniprogram.Input) { this.setData({ newGoal: e.detail.value }); },
+  onQuotaInput(e: WechatMiniprogram.Input) { this.setData({ newQuota: e.detail.value }); },
+  onUnitInput(e: WechatMiniprogram.Input) { this.setData({ newUnit: e.detail.value }); },
+
+  async submitCreate() {
+    const name = this.data.newName.trim();
+    if (!name) return wx.showToast({ title: '给项目起个名', icon: 'none' });
+    const mode = this.data.newMode;
+    const payload: any = { name, mode };
+    if (mode === 'count' || mode === 'result') {
+      const goal = Number(this.data.newGoal);
+      if (!(goal > 0)) return wx.showToast({ title: mode === 'count' ? '填个目标件数' : '填个目标数值', icon: 'none' });
+      payload.goal_target = goal;
+      if (mode === 'result') { payload.goal_unit = this.data.newUnit.trim(); payload.cycle = 'month'; }
+    } else if (mode === 'streak') {
+      const quota = Number(this.data.newQuota) || 1; // 默认日更 1
+      payload.daily_quota = quota;
+    }
+    try {
+      await api.createProject(payload);
+      this.setData({ showCreate: false });
+      wx.showToast({ title: '已创建', icon: 'success' });
+      this.load();
+    } catch (err: any) {
+      wx.showToast({ title: err.msg || '创建失败', icon: 'none' });
+    }
   },
 });

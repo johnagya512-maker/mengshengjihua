@@ -1,5 +1,10 @@
 .projects { min-height: 100vh; padding: 120rpx 40rpx 160rpx; box-sizing: border-box; }
-.projects__title { font-size: 48rpx; font-weight: 600; margin-bottom: 48rpx; }
+.projects__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48rpx; }
+.projects__title { font-size: 48rpx; font-weight: 600; }
+.projects__add {
+  font-size: 28rpx; font-weight: 600; color: var(--color-primary);
+  padding: 12rpx 28rpx; border-radius: 999rpx; background: rgba(122,158,126,0.12);
+}
 .projects__loading, .projects__empty { text-align: center; color: var(--color-text-sub); font-size: 28rpx; padding-top: 120rpx; }
 .projects__grid { display: flex; flex-wrap: wrap; gap: 28rpx; }
 
@@ -27,3 +32,32 @@
 .group { margin-bottom: 20rpx; }
 .group__title { font-size: 26rpx; font-weight: 600; color: var(--color-text); margin-bottom: 12rpx; }
 .dotrow--step { padding-left: 28rpx; }
+
+/* ===== streak 持续型：势头 ===== */
+.streak { width: 160rpx; height: 160rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.streak__days { font-size: 72rpx; font-weight: 700; color: var(--color-primary); line-height: 1; }
+.streak__label { font-size: 24rpx; color: var(--color-text-sub); margin-top: 12rpx; }
+
+/* ===== result 结果型：数值条 ===== */
+.result { width: 100%; padding: 8rpx 0; }
+.result__val { font-size: 44rpx; font-weight: 700; text-align: center; }
+.result__unit { font-size: 24rpx; font-weight: 400; color: var(--color-text-sub); margin-left: 4rpx; }
+.result__bar { width: 100%; height: 14rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); margin: 16rpx 0 8rpx; overflow: hidden; }
+.result__fill { height: 100%; border-radius: 999rpx; transition: width 0.3s; }
+.result__goal { font-size: 24rpx; color: var(--color-text-sub); text-align: center; }
+
+/* ===== 新建项目弹窗 ===== */
+.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-end; }
+.modal { width: 100%; background: var(--color-bg, #fff); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.modal__title { font-size: 36rpx; font-weight: 600; margin-bottom: 32rpx; }
+.modal__input { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.04); border-radius: 16rpx; padding: 24rpx; font-size: 30rpx; margin-bottom: 20rpx; }
+.modal__label { font-size: 26rpx; color: var(--color-text-sub); margin: 8rpx 0 16rpx; }
+.mode-tabs { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
+.mode-tab { flex: 1; padding: 20rpx 12rpx; border-radius: 16rpx; background: rgba(0,0,0,0.04); border: 3rpx solid transparent; text-align: center; }
+.mode-tab--on { border-color: var(--color-primary); background: rgba(122,158,126,0.12); }
+.mode-tab__name { font-size: 28rpx; font-weight: 600; }
+.mode-tab__desc { font-size: 20rpx; color: var(--color-text-sub); margin-top: 8rpx; line-height: 1.3; }
+.modal__actions { display: flex; gap: 20rpx; margin-top: 12rpx; }
+.modal__btn { flex: 1; text-align: center; padding: 26rpx; border-radius: 16rpx; font-size: 30rpx; font-weight: 600; }
+.modal__btn--ghost { background: rgba(0,0,0,0.05); color: var(--color-text-sub); }
+.modal__btn--primary { background: var(--color-primary); color: #fff; }

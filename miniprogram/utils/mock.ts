@@ -33,6 +33,32 @@ function delay<T>(data: T, ms = 300): Promise<T> {
   return new Promise((res) => setTimeout(() => res(data), ms));
 }
 
+// streak 推进指标（复刻 cloudfunctions/project_list 逻辑，供本地演示三态）
+function cstDate(ms: number) {
+  return new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function weekStartMs() {
+  const d = new Date(Date.now() + 8 * 3600 * 1000);
+  const dow = (d.getUTCDay() + 6) % 7;
+  const monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow);
+  return monday - 8 * 3600 * 1000;
+}
+function streakMetrics(doneList: any[], dailyQuota: number) {
+  const quota = dailyQuota > 0 ? dailyQuota : 1;
+  const byDay: Record<string, number> = {};
+  doneList.forEach((t) => { if (t.finished_at) { const d = cstDate(t.finished_at); byDay[d] = (byDay[d] || 0) + 1; } });
+  const metDays = Object.keys(byDay).filter((d) => byDay[d] >= quota).sort();
+  const metSet = new Set(metDays);
+  const oneDay = 86400 * 1000;
+  let cursor = Date.now();
+  if (!metSet.has(cstDate(cursor))) cursor -= oneDay;
+  let streak = 0;
+  while (metSet.has(cstDate(cursor))) { streak += 1; cursor -= oneDay; }
+  const wkStart = weekStartMs();
+  const weekMet = metDays.filter((d) => new Date(d + 'T00:00:00+08:00').getTime() >= wkStart).length;
+  return { streak_days: streak, week_met_days: weekMet, total_done: doneList.length };
+}
+
 export function mockCall(name: string, data: any): Promise<any> {
   switch (name) {
     case 'auth_login':
@@ -44,6 +70,25 @@ export function mockCall(name: string, data: any): Promise<any> {
 
     case 'task_parse':
       return delay(fakeParse(data.input_text), 600);
+
+    case 'project_create': {
+      const nm = (data.name || '').trim();
+      if (mem.projects[nm]) {
+        const ex = mem.projects[nm];
+        return delay({ project_id: ex.project_id, name: ex.name, color: ex.color, mode: ex.mode, existed: true });
+      }
+      const idx = Object.keys(mem.projects).length;
+      mem.projects[nm] = {
+        project_id: `p_${idx}`, name: nm, color: COLORS[idx % COLORS.length],
+        mode: data.mode || 'count',
+        goal_target: Number(data.goal_target) || null,
+        daily_quota: Number(data.daily_quota) || null,
+        goal_unit: data.goal_unit || '',
+        cycle: data.cycle || 'none',
+        current_value: data.mode === 'result' ? 0 : null,
+      };
+      return delay({ project_id: mem.projects[nm].project_id, name: nm, color: mem.projects[nm].color, mode: mem.projects[nm].mode, existed: false });
+    }
 
     case 'task_save': {
       const tag = data.project_tag || '日常';
@@ -86,6 +131,7 @@ export function mockCall(name: string, data: any): Promise<any> {
       if (t) {
         t.status = data.result === 'complete' ? 'done' : 'skip';
         t.actual_duration = data.actual_duration || t.duration;
+        if (data.result === 'complete') t.finished_at = Date.now();
         if (data.result === 'skip') {
           const bucket = (mem.skipStats[t.task_id] = mem.skipStats[t.task_id] || {});
           const reason = data.skip_reason || '临时取消';
@@ -118,13 +164,25 @@ export function mockCall(name: string, data: any): Promise<any> {
     }
 
     case 'project_list': {
-      const projects = Object.values(mem.projects).map((p) => {
-        const list = mem.tasks.filter((t) => t.project_id === p.project_id)
-          .map((t) => ({ task_id: t.task_id, action: t.action, status: t.status }));
-        return {
-          ...p, total_tasks: list.length,
-          completed_tasks: list.filter((t) => t.status === 'done').length, tasks: list,
+      const projects = Object.values(mem.projects).map((p: any) => {
+        const taskList = mem.tasks.filter((t) => t.project_id === p.project_id);
+        const list = taskList.map((t) => ({ task_id: t.task_id, action: t.action, status: t.status }));
+        const doneList = taskList.filter((t) => t.status === 'done');
+        const mode = p.mode || 'count';
+        const base = {
+          project_id: p.project_id, name: p.name, color: p.color,
+          mode,
+          goal_target: p.goal_target || null,
+          daily_quota: p.daily_quota || null,
+          goal_unit: p.goal_unit || '',
+          cycle: p.cycle || 'none',
+          current_value: p.current_value || 0,
+          total_tasks: list.length,
+          completed_tasks: doneList.length,
+          tasks: list,
         };
+        if (mode === 'streak') return { ...base, ...streakMetrics(doneList, p.daily_quota) };
+        return base;
       });
       return delay({ projects });
     }

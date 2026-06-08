@@ -11,6 +11,7 @@ interface IAppOption {
 // ===== 领域模型 =====
 type TaskStatus = 'pending' | 'done' | 'skip';
 type TaskType = 'normal' | 'gap'; // gap = 治愈间隙
+type ProjectMode = 'count' | 'streak' | 'result'; // 项目三态：计数/坚持/数值
 type SkipReason = '没状态' | '等待外部' | '临时取消';
 type ScheduleTrigger = 'add_task' | 'complete' | 'skip' | 'daily_init';
 
@@ -48,6 +49,17 @@ interface Project {
   total_tasks: number;
   completed_tasks: number;
   tasks?: Array<{ task_id: string; action: string; status: TaskStatus }>;
+  // ===== v1.1 项目三态 =====
+  mode?: ProjectMode;          // count / streak / result，默认 count
+  goal_target?: number | null; // count=目标件数；result=目标数值
+  daily_quota?: number | null; // streak 每日标准（如日更 1 个）
+  goal_unit?: string;          // result 单位（元/粉丝）
+  cycle?: 'month' | 'week' | 'none';
+  current_value?: number;      // result 当前值
+  // streak 推进指标（project_list 现算）
+  streak_days?: number;        // 连续达标天数
+  week_met_days?: number;      // 本周达标天数
+  total_done?: number;         // 累计完成件数
 }
 
 interface SubTask {
