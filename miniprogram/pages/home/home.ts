@@ -27,6 +27,13 @@ Page({
     overflowTask: null as Task | null,   // 容量饱和待确认
     coachLine: '',                       // 教练式进度行
     allowSplit: false,                   // 是否让 AI 拆分大事（默认关，快速建单条）
+    showCapModal: false,                 // 每日可投入时长调节弹窗
+    workHoursOptions: [
+      { value: 2, label: '🌱 1~2 小时' },
+      { value: 4, label: '☕ 3~4 小时' },
+      { value: 6, label: '💪 5~6 小时' },
+      { value: 8, label: '🔥 8 小时以上' },
+    ],
   },
 
   onLoad() {
@@ -122,6 +129,25 @@ Page({
   onInput(e: WechatMiniprogram.Input) { this.setData({ inputText: e.detail.value }); },
   onToggleSplit(e: WechatMiniprogram.SwitchChange) { this.setData({ allowSplit: e.detail.value }); },
   noop() {}, // 拦截面板内点击冒泡到遮罩，避免误关闭
+
+  // ---- 每日可投入时长：点胶囊调节，立即重排刷新容量 ----
+  openCapModal() { this.setData({ showCapModal: true }); },
+  closeCapModal() { this.setData({ showCapModal: false }); },
+  async pickWorkHours(e: WechatMiniprogram.TouchEvent) {
+    const h = Number(e.currentTarget.dataset.h);
+    this.setData({ showCapModal: false });
+    if (!(h >= 1 && h <= 12)) return;
+    try {
+      await api.patchProfile({ ideal_work_hours: h });
+      // 改完立即重排，容量条按新额度刷新
+      const r = await api.compute('add_task');
+      this.applyTasks(r.ordered_tasks);
+      this.applyCapacity(r.daily_capacity_used, r.daily_capacity_total);
+      cacheTasks(r.ordered_tasks);
+      cacheCapacity(r.daily_capacity_used, r.daily_capacity_total);
+      wx.showToast({ title: '已更新今日额度', icon: 'none', duration: 1200 });
+    } catch (err) { /* 提示已由 request 层弹出 */ }
+  },
 
   // ---- 语音录入：长按说话 ----
   startRecord() {

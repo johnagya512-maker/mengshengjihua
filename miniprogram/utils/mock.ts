@@ -119,6 +119,9 @@ export function mockCall(name: string, data: any): Promise<any> {
       mem.profileReady = true;
       return delay({ success: true });
 
+    case 'profile_patch':
+      return delay({ success: true, ...data });
+
     case 'task_parse':
       return delay(fakeParse(data.input_text, !!data.allow_split, !!data.force_plan), 600);
 

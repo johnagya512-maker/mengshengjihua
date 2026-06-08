@@ -1,6 +1,6 @@
 <view class="home">
-  <!-- 进度胶囊 -->
-  <view class="capsule">
+  <!-- 进度胶囊（点击可调每日可投入时长） -->
+  <view class="capsule" bindtap="openCapModal">
     <view class="capsule__label">今日剩余可支配创造力</view>
     <view class="capsule__value">{{remainLabel}}</view>
   </view>
@@ -108,6 +108,16 @@
         <button class="dialog__no" bindtap="forceToday">今天硬塞</button>
         <button class="btn-primary dialog__yes" bindtap="confirmMoveTomorrow">移到明天</button>
       </view>
+    </view>
+  </view>
+
+  <!-- 每日可投入时长调节 -->
+  <view wx:if="{{showCapModal}}" class="mask" bindtap="closeCapModal">
+    <view class="caphours" catchtap="noop">
+      <view class="caphours__title">每天大概能投入多少？</view>
+      <view class="caphours__hint">改完今日额度立即重算，之后系统仍会按你实际完成情况校准</view>
+      <view wx:for="{{workHoursOptions}}" wx:key="value"
+            class="caphours__opt" data-h="{{item.value}}" bindtap="pickWorkHours">{{item.label}}</view>
     </view>
   </view>
 </view>

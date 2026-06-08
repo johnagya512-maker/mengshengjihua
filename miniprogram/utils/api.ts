@@ -21,6 +21,11 @@ export const api = {
     return callCloud('profile_init', p);
   },
 
+  // 单字段更新画像（白名单），目前用于胶囊弹窗改每日可投入时长
+  patchProfile(p: { ideal_work_hours?: number }): Promise<{ success: boolean; ideal_work_hours?: number }> {
+    return callCloud('profile_patch', p);
+  },
+
   parseTask(input_text: string, allow_split = false, force_plan = false): Promise<ParseResult> {
     return callCloud<ParseResult>('task_parse', { input_text, allow_split, force_plan }, { isAI: true });
   },
