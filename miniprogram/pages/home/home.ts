@@ -351,9 +351,11 @@ Page({
         const rest = this.data.tasks.filter((t) => t.task_id !== id);
         this.applyTasks(rest);
         cacheTasks(rest);
-        api.deleteTask(id).catch(() => {
-          wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
-        });
+        api.deleteTask(id)
+          .then(() => this.refresh('add_task')) // 删后重算容量，剩余额度立即回退
+          .catch(() => {
+            wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
+          });
       },
     });
   },
@@ -364,8 +366,10 @@ Page({
     if (!id) return;
     const rest = this.data.doneTasks.filter((t) => t.task_id !== id);
     this.setData({ doneTasks: rest });
-    api.deleteTask(id).catch(() => {
-      wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
-    });
+    api.deleteTask(id)
+      .then(() => this.refresh('add_task')) // 删后重算容量，已用额度同步回退
+      .catch(() => {
+        wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
+      });
   },
 });
