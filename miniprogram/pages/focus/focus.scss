@@ -1,0 +1,30 @@
+.focus {
+  min-height: 100vh; padding: 160rpx 60rpx;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.focus__confirm, .focus__finish { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.focus__vision {
+  font-size: 34rpx; color: var(--color-primary); text-align: center; line-height: 1.6;
+  background: rgba(122,158,126,0.1); padding: 40rpx; border-radius: var(--radius-lg); margin-bottom: 48rpx;
+}
+.focus__action { font-size: 40rpx; font-weight: 600; text-align: center; margin-bottom: 60rpx; }
+.focus__dur { display: flex; align-items: center; gap: 40rpx; margin-bottom: 80rpx; }
+.focus__adjust {
+  width: 120rpx; height: 72rpx; line-height: 72rpx; text-align: center;
+  border-radius: 999rpx; background: var(--color-card); color: var(--color-primary); font-size: 28rpx;
+}
+.focus__durval { font-size: 44rpx; font-weight: 600; min-width: 200rpx; text-align: center; }
+.focus__go, .focus__complete { width: 100%; height: 96rpx; line-height: 96rpx; font-size: 32rpx; }
+
+.focus__running { display: flex; flex-direction: column; align-items: center; }
+.focus__timer { font-size: 140rpx; font-weight: 200; letter-spacing: 4rpx; color: var(--color-primary); }
+.focus__tip { font-size: 30rpx; color: var(--color-text-sub); margin: 40rpx 0 100rpx; text-align: center; }
+.focus__early { font-size: 28rpx; color: var(--color-text-sub); padding: 16rpx 48rpx; border-radius: 999rpx; background: var(--color-card); }
+
+.focus__done { font-size: 44rpx; font-weight: 600; margin-bottom: 80rpx; }
+.focus__skip { margin-top: 40rpx; font-size: 28rpx; color: var(--color-text-sub); }
+
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.skipbox { width: 560rpx; background: var(--color-card); border-radius: var(--radius-lg); padding: 40rpx; }
+.skipbox__title { font-size: 32rpx; font-weight: 600; text-align: center; margin-bottom: 28rpx; }
+.skipbox__item { padding: 28rpx; text-align: center; font-size: 30rpx; border-radius: var(--radius-md); background: var(--color-bg); margin-bottom: 16rpx; }

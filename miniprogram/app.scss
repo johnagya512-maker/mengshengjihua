@@ -1,0 +1,48 @@
+/* app.scss — 自然质朴(Nature Distilled)治愈色系 */
+page {
+  --color-bg: #F5F0E1;           /* 沙米底色 */
+  --color-card: #FFFDF7;         /* 暖白卡片 */
+  --color-primary: #C67B5C;      /* 陶土 */
+  --color-accent: #6B7B3C;       /* 橄榄绿 */
+  --color-clay: #B5651D;         /* 暖陶 深 */
+  --color-text: #4A4036;         /* 暖褐文字 */
+  --color-text-sub: #A89B86;     /* 沙褐 次要 */
+  --color-gap: #DDD3BE;          /* 间隙沙 */
+  --radius-lg: 32rpx;            /* 有机大圆角 */
+  --radius-md: 22rpx;
+  --shadow-card: 0 10rpx 40rpx rgba(181, 101, 29, 0.10);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, "PingFang SC", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  page {
+    --color-bg: #211D17;
+    --color-card: #2D281F;
+    --color-text: #ECE3D2;
+    --color-text-sub: #8A7F6B;
+    --shadow-card: 0 10rpx 40rpx rgba(0, 0, 0, 0.35);
+  }
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999rpx;
+  border: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.btn-primary:active { opacity: 0.85; transform: scale(0.97); }
+
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 32rpx;
+}
+
+/* 尊重用户的减少动态偏好（无障碍） */
+@media (prefers-reduced-motion: reduce) {
+  view, button { transition: none !important; animation: none !important; }
+}

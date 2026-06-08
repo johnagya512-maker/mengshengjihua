@@ -1,0 +1,29 @@
+.projects { min-height: 100vh; padding: 120rpx 40rpx 160rpx; box-sizing: border-box; }
+.projects__title { font-size: 48rpx; font-weight: 600; margin-bottom: 48rpx; }
+.projects__loading, .projects__empty { text-align: center; color: var(--color-text-sub); font-size: 28rpx; padding-top: 120rpx; }
+.projects__grid { display: flex; flex-wrap: wrap; gap: 28rpx; }
+
+.ring-item {
+  width: calc(50% - 14rpx); box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; padding: 36rpx 24rpx;
+}
+.ring-item__canvas-wrap { position: relative; width: 160rpx; height: 160rpx; }
+.ring-item__canvas { width: 160rpx; height: 160rpx; }
+.ring-item__percent {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 32rpx; font-weight: 600;
+}
+.ring-item__name { font-size: 30rpx; font-weight: 600; margin-top: 24rpx; text-align: center; }
+.ring-item__count { font-size: 24rpx; color: var(--color-text-sub); margin-top: 8rpx; }
+
+.dots { width: 100%; margin-top: 28rpx; border-top: 2rpx solid rgba(0,0,0,0.06); padding-top: 24rpx; }
+.dotrow { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
+.dotrow__action { font-size: 26rpx; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 20rpx; height: 20rpx; border-radius: 50%; flex-shrink: 0; }
+.dot--done { background: var(--color-primary); }
+.dot--pending { background: transparent; border: 3rpx solid var(--color-text-sub); }
+.dot--skip { background: var(--color-text-sub); opacity: 0.4; }
+
+.group { margin-bottom: 20rpx; }
+.group__title { font-size: 26rpx; font-weight: 600; color: var(--color-text); margin-bottom: 12rpx; }
+.dotrow--step { padding-left: 28rpx; }

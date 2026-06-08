@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "strict": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": ["ES2020"],
+    "typeRoots": ["./typings", "./node_modules/miniprogram-api-typings"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["miniprogram/*"] }
+  },
+  "include": ["miniprogram/**/*.ts", "typings/**/*.d.ts"],
+  "exclude": ["node_modules", "cloudfunctions"]
+}

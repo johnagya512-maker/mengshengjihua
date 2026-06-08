@@ -1,0 +1,24 @@
+.ob {
+  min-height: 100vh;
+  padding: 160rpx 60rpx 120rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.ob__progress { font-size: 26rpx; color: var(--color-text-sub); margin-bottom: 60rpx; }
+.ob__step { flex: 1; display: flex; flex-direction: column; }
+.ob__bubble {
+  font-size: 40rpx; font-weight: 600; line-height: 1.5;
+  background: var(--color-card); border-radius: var(--radius-lg);
+  padding: 36rpx; box-shadow: var(--shadow-card); align-self: flex-start;
+}
+.ob__hint { font-size: 24rpx; color: var(--color-text-sub); margin-top: 24rpx; line-height: 1.5; }
+.ob__list { display: flex; flex-direction: column; gap: 20rpx; margin-top: 48rpx; }
+.ob__opt {
+  padding: 32rpx 36rpx; border-radius: var(--radius-md); font-size: 32rpx;
+  background: var(--color-card); color: var(--color-text);
+  border: 2rpx solid transparent;
+}
+.ob__opt--on { background: rgba(122,158,126,0.15); border-color: var(--color-primary); color: var(--color-primary); }
+.ob__hours { font-size: 56rpx; font-weight: 600; color: var(--color-primary); margin: 60rpx 0 40rpx; text-align: center; }
+.ob__next { margin-top: auto; height: 96rpx; line-height: 96rpx; font-size: 32rpx; }

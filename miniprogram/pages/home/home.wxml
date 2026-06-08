@@ -1,0 +1,111 @@
+<view class="home">
+  <!-- 进度胶囊 -->
+  <view class="capsule">
+    <view class="capsule__label">今日剩余可支配创造力</view>
+    <view class="capsule__value">{{remainLabel}}</view>
+  </view>
+
+  <!-- 当前任务 / 空态 -->
+  <view class="home__body">
+    <block wx:if="{{current}}">
+      <view class="taskcard card">
+        <view class="taskcard__tag">{{current.project_tag}}</view>
+        <view class="taskcard__action">{{current.action}}</view>
+        <view class="taskcard__vision">{{current.vision_statement}}</view>
+        <view class="taskcard__meta">预估 {{current.duration}} 分钟</view>
+        <view class="taskcard__btns">
+          <button class="btn-primary taskcard__start" bindtap="startTask">开始</button>
+          <button class="taskcard__done" catchtap="completeDirect" data-id="{{current.task_id}}">✓ 完成</button>
+        </view>
+      </view>
+      <view class="home__count">{{coachLine}}</view>
+
+      <!-- 今日待办列表：当前任务之外的队列，让新增任务可见 -->
+      <view wx:if="{{tasks.length > 1}}" class="queue">
+        <view class="queue__title">接下来</view>
+        <view wx:for="{{tasks}}" wx:key="task_id" wx:if="{{index > 0}}"
+              class="queue__item" data-id="{{item.task_id}}" bindtap="selectTask">
+          <view class="queue__dot"></view>
+          <view class="queue__action">{{item.action}}</view>
+          <view class="queue__dur">{{item.duration}}分</view>
+          <view class="queue__done" catchtap="completeDirect" data-id="{{item.task_id}}">✓</view>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="home__empty">今天清空了，牛。</view>
+
+    <!-- 已完成 / 跳过：划线留痕，用户自己删，不自动消失 -->
+    <view wx:if="{{doneTasks.length}}" class="done">
+      <view class="done__title">已完成</view>
+      <view wx:for="{{doneTasks}}" wx:key="task_id" class="done__item {{item.status === 'skip' ? 'done__item--skip' : ''}}">
+        <view class="done__action">{{item.action}}</view>
+        <view class="done__del" catchtap="deleteDone" data-id="{{item.task_id}}">×</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全局大按钮 -->
+  <view class="bigbtn" bindtap="openInput">＋</view>
+
+  <!-- 输入面板 -->
+  <view wx:if="{{showInput}}" class="mask" bindtap="closeInput">
+    <view class="panel" catchtap="noop">
+      <block wx:if="{{!parseCard}}">
+        <textarea class="panel__input" placeholder="此刻在想什么？说出来交给 AI"
+                  value="{{inputText}}" bindinput="onInput" maxlength="500" auto-height focus />
+        <view class="panel__split">
+          <text class="panel__split-label">大事帮我拆成几步</text>
+          <switch checked="{{allowSplit}}" color="#7A9E7E" bindchange="onToggleSplit" />
+        </view>
+        <view class="panel__row">
+          <view class="panel__mic {{recording ? 'panel__mic--on' : ''}}"
+                bindtouchstart="startRecord" bindtouchend="stopRecord" bindtouchcancel="stopRecord">
+            {{recording ? '🎤 松开识别' : '🎤 长按说话'}}
+          </view>
+          <button class="btn-primary panel__send" loading="{{parsing}}" bindtap="submitInput">{{allowSplit ? '交给 AI 拆解' : '快速添加'}}</button>
+        </view>
+      </block>
+
+      <!-- 确认卡片 -->
+      <view wx:else class="confirm">
+        <view class="confirm__title">{{parseCard.is_big_task ? '这件事有点大，帮你拆成几步' : '确认一下'}}</view>
+
+        <!-- 大事：展示拆分小步 -->
+        <block wx:if="{{parseCard.is_big_task}}">
+          <view class="confirm__field"><text>项目</text><view>{{parseCard.project_tag}}</view></view>
+          <view class="subtasks">
+            <view wx:for="{{parseCard.subtasks}}" wx:key="index" class="subtask">
+              <view class="subtask__idx">{{index + 1}}</view>
+              <view class="subtask__action">{{item.action}}</view>
+              <view class="subtask__dur">{{item.duration}}分</view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 单任务 -->
+        <block wx:else>
+          <view class="confirm__field"><text>任务</text><view>{{parseCard.action}}</view></view>
+          <view class="confirm__field"><text>耗时</text><view>{{parseCard.duration}} 分钟</view></view>
+          <view class="confirm__field"><text>项目</text><view>{{parseCard.project_tag}}</view></view>
+        </block>
+
+        <view class="confirm__vision">{{parseCard.vision_statement}}</view>
+        <view class="confirm__btns">
+          <button class="confirm__cancel" bindtap="closeInput">取消</button>
+          <button class="btn-primary confirm__ok" bindtap="confirmCard">{{parseCard.is_big_task ? '全部加入今日' : '加入今日'}}</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 容量饱和 -->
+  <view wx:if="{{overflowTask}}" class="mask">
+    <view class="dialog">
+      <view class="dialog__text">今天已满，要移到明天吗？</view>
+      <view class="dialog__btns">
+        <button class="dialog__no" bindtap="forceToday">今天硬塞</button>
+        <button class="btn-primary dialog__yes" bindtap="confirmMoveTomorrow">移到明天</button>
+      </view>
+    </view>
+  </view>
+</view>

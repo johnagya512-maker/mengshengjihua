@@ -1,0 +1,26 @@
+# 依赖
+node_modules/
+miniprogram/miniprogram_npm/
+**/node_modules/
+
+# 微信开发者工具本地配置（含个人路径/凭证）
+project.private.config.json
+
+# 编译产物
+**/*.js.map
+miniprogram/**/*.js
+!miniprogram/**/*.config.js
+
+# 日志与缓存
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# 工具/代理配置（非项目代码）
+.claude/
+__pycache__/
+*.pyc

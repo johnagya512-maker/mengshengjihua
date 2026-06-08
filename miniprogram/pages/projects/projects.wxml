@@ -1,0 +1,33 @@
+<view class="projects">
+  <view class="projects__title">项目</view>
+
+  <view wx:if="{{loading}}" class="projects__loading">加载中…</view>
+  <view wx:elif="{{projects.length === 0}}" class="projects__empty">完成任务后，项目会自动出现在这里</view>
+
+  <view wx:else class="projects__grid">
+    <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
+      <view class="ring-item__canvas-wrap">
+        <canvas type="2d" id="ring-{{item.project_id}}" class="ring-item__canvas"></canvas>
+        <view class="ring-item__percent">{{item.percent}}%</view>
+      </view>
+      <view class="ring-item__name">{{item.name}}</view>
+      <view class="ring-item__count">{{item.completed_tasks}}/{{item.total_tasks}}</view>
+
+      <view wx:if="{{activeId === item.project_id}}" class="dots">
+        <block wx:for="{{activeGroups}}" wx:for-item="g" wx:key="index">
+          <view wx:if="{{g.is_group}}" class="group">
+            <view class="group__title">📌 {{g.parent_action}}</view>
+            <view wx:for="{{g.steps}}" wx:for-item="t" wx:key="task_id" class="dotrow dotrow--step">
+              <view class="dot dot--{{t.status}}"></view>
+              <text class="dotrow__action">{{t.action}}</text>
+            </view>
+          </view>
+          <view wx:else class="dotrow">
+            <view class="dot dot--{{g.status}}"></view>
+            <text class="dotrow__action">{{g.action}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,37 @@
+<view class="focus">
+  <!-- 确认阶段 -->
+  <view wx:if="{{phase === 'confirm'}}" class="focus__confirm">
+    <view class="focus__back" bindtap="goBack">‹ 返回</view>
+    <view class="focus__vision">{{task.vision_statement}}</view>
+    <view class="focus__action">{{task.action}}</view>
+    <view class="focus__dur">
+      <view class="focus__adjust" data-d="{{-15}}" bindtap="adjust">－15</view>
+      <view class="focus__durval">{{duration}} 分钟</view>
+      <view class="focus__adjust" data-d="{{15}}" bindtap="adjust">＋15</view>
+    </view>
+    <button class="btn-primary focus__go" bindtap="start">开始专注</button>
+  </view>
+
+  <!-- 计时阶段 -->
+  <view wx:elif="{{phase === 'running'}}" class="focus__running">
+    <view class="focus__timer">{{timeLabel}}</view>
+    <view class="focus__tip">{{task.action}}</view>
+    <view class="focus__early" bindtap="earlyFinish">提前结束</view>
+  </view>
+
+  <!-- 完成阶段 -->
+  <view wx:else class="focus__finish">
+    <view class="focus__done">这一程，走完了</view>
+    <button class="btn-primary focus__complete" bindtap="complete">完成</button>
+    <view class="focus__skip" bindtap="openSkip">跳过</view>
+  </view>
+
+  <!-- 跳过原因 -->
+  <view wx:if="{{showSkip}}" class="mask">
+    <view class="skipbox">
+      <view class="skipbox__title">跳过原因？</view>
+      <view wx:for="{{skipReasons}}" wx:key="*this" class="skipbox__item"
+            data-r="{{item}}" bindtap="chooseSkip">{{item}}</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,27 @@
+{
+  "pages": [
+    "pages/guide/guide",
+    "pages/home/home",
+    "pages/focus/focus",
+    "pages/projects/projects"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F7F5F2",
+    "backgroundTextStyle": "dark",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#B0AAA2",
+    "selectedColor": "#7A9E7E",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "今日" },
+      { "pagePath": "pages/projects/projects", "text": "项目" }
+    ]
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

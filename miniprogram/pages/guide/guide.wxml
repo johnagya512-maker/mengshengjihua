@@ -1,0 +1,16 @@
+<view class="guide">
+  <view class="guide__brand">
+    <view class="guide__logo">闷</view>
+    <view class="guide__title">闷声计划</view>
+    <view class="guide__slogan">清空大脑，专注当下</view>
+  </view>
+  <view class="guide__footer">
+    <button class="btn-primary guide__btn" loading="{{loading}}" bindtap="onLogin">
+      微信一键登录
+    </button>
+    <view class="guide__hint">
+      登录即表示同意
+      <text class="guide__link" bindtap="openPrivacy">《隐私政策》</text>
+    </view>
+  </view>
+</view>

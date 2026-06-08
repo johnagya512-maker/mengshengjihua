@@ -1,0 +1,25 @@
+<view class="ob">
+  <view class="ob__progress">{{step}} / 2</view>
+
+  <!-- 问题 1：自然醒（推导高峰） -->
+  <view wx:if="{{step === 1}}" class="ob__step">
+    <view class="ob__bubble">不用闹钟时，你一般几点自然醒？</view>
+    <view class="ob__hint">不确定也没关系，选「说不准」我们先给你一个通用节奏</view>
+    <view class="ob__list">
+      <view wx:for="{{wakeOptions}}" wx:key="value"
+            class="ob__opt {{wakeIdx === index ? 'ob__opt--on' : ''}}"
+            data-i="{{index}}" bindtap="pickWake">{{item.label}}</view>
+    </view>
+  </view>
+
+  <!-- 问题 2：单次专注耐受 -->
+  <view wx:if="{{step === 2}}" class="ob__step">
+    <view class="ob__bubble">一次能专注多久不分心？</view>
+    <view class="ob__hint">这会决定我们多久给你安排一段治愈间隙</view>
+    <view class="ob__list">
+      <view wx:for="{{focusOptions}}" wx:key="label"
+            class="ob__opt {{focusIdx === index ? 'ob__opt--on' : ''}}"
+            data-i="{{index}}" bindtap="pickFocus">{{item.label}}</view>
+    </view>
+  </view>
+</view>

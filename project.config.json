@@ -1,0 +1,16 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true,
+    "useCompilerPlugins": ["typescript", "sass"],
+    "minifyWXML": true
+  },
+  "compileType": "miniprogram",
+  "appid": "wx9d75dc57ea567e69",
+  "libVersion": "3.0.0",
+  "editorSetting": {}
+}
