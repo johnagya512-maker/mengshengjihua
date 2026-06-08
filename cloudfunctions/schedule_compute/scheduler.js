@@ -1,6 +1,6 @@
 // cloudfunctions/schedule_compute/scheduler.js — 排期算法（纯函数，可独立测试）
 
-const BUFFER_RATIO = 0.8;
+const BUFFER_RATIO = 1.0; // 所见即所得：用户设几小时就排几小时，不再暗扣余量（想留余量自行少填）
 
 /**
  * 解析 "HH:mm-HH:mm" → [开始分钟, 结束分钟]

@@ -2,7 +2,7 @@
 
 const WINDOW_DAYS = 21;        // 滚动窗口：只看最近 3 周（护栏2）
 const COLD_START_MIN = 20;     // 冷启动门槛：完成 < 20 条不学（护栏1）
-const BUFFER_RATIO = 0.8;      // 与排期引擎一致的缓冲系数
+const BUFFER_RATIO = 1.0;      // 与排期引擎一致：所见即所得，不暗扣余量
 const DAY_MS = 86400 * 1000;
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }

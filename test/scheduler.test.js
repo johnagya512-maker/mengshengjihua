@@ -8,8 +8,8 @@ function eq(name, got, want) {
   ok ? pass++ : fail++;
 }
 
-// 1. 容量计算：6h × 0.8 = 288min
-eq('capacity 6h', dailyCapacity(6), 288);
+// 1. 容量计算：6h × 1.0 = 360min（所见即所得，无 buffer）
+eq('capacity 6h', dailyCapacity(6), 360);
 
 // 2. 基础排期 + 顺序
 const r1 = schedule({
@@ -92,11 +92,11 @@ const r8 = schedule({
 });
 eq('numeric skipStats still works', r8.ordered_tasks[0].task_id, 'b');
 
-// 8. 已完成时长从可用容量扣除（修复容量重复计账）：6h=288min 容量，已用 270min，仅剩 18min
+// 8. 已完成时长从可用容量扣除（修复容量重复计账）：6h=360min 容量，已用 342min，仅剩 18min
 const r9 = schedule({
   profile: { ideal_work_hours: 6, peak_hours: [] },
   nowMinute: 540,
-  usedMinutes: 270,
+  usedMinutes: 342,
   tasks: [
     { task_id: 'a', duration: 30, created_at: 1 }, // 30 > 剩余18 → 溢出
     { task_id: 'b', duration: 15, created_at: 2 }, // 15 <= 18 → 排入
