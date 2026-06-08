@@ -126,15 +126,13 @@ export function mockCall(name: string, data: any): Promise<any> {
     }
 
     case 'task_save': {
-      const tag = data.project_tag || '日常';
-      if (!mem.projects[tag]) {
-        const idx = Object.keys(mem.projects).length;
-        mem.projects[tag] = { project_id: `p_${idx}`, name: tag, color: COLORS[idx % COLORS.length] };
-      }
-      const pid = mem.projects[tag].project_id;
+      // 命中已有同名项目才归入；否则 project_id 留空（不自动建「随手记」）
+      const tag = data.project_tag || '';
+      const proj = tag ? mem.projects[tag] : null;
+      const pid = proj ? proj.project_id : '';
       const today = cstDate(Date.now());
       const base = {
-        project_id: pid, project_tag: tag,
+        project_id: pid, project_tag: proj ? tag : '',
         action: data.action, duration: data.duration, vision_statement: data.vision_statement,
         type: 'normal', scheduled_time: '', is_priority: !!data.is_priority, created_at: mem.seq,
       };
@@ -244,7 +242,7 @@ export function mockCall(name: string, data: any): Promise<any> {
       const byProject: Record<string, number> = {};
       done.forEach((t) => { byProject[t.project_id || ''] = (byProject[t.project_id || ''] || 0) + 1; });
       const distribution = Object.keys(byProject).map((pid) => ({
-        project_id: pid, name: nameOf[pid] || '随手记', color: colorOf[pid] || '#B0AAA2', count: byProject[pid],
+        project_id: pid, name: nameOf[pid] || '零散', color: colorOf[pid] || '#B0AAA2', count: byProject[pid],
       })).sort((a, b) => b.count - a.count);
       // 跳过归因（mock 用 skipStats 累加的 reason 计数）
       const counts: any = { 没状态: 0, 等待外部: 0, 临时取消: 0 };

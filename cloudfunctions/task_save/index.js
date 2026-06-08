@@ -26,8 +26,8 @@ exports.main = async (event) => {
   if (vision_statement && vision_statement.length > 80) return fail(422, '愿景文案过长');
 
   try {
-    // 归类规则：命中用户已建的同名项目则归入；否则统一进「随手记」兜底分类。
-    // 「随手记」是唯一允许系统自动维护的默认项目，作为收件箱 + 报告统计兜底。
+    // 归类规则：命中用户已建的同名项目则归入；否则不归任何项目（project_id 留空）。
+    // 不再自动创建「随手记」兜底项目——零散任务照常进今日清单与复盘，只是不挂项目。
     const projCol = db.collection('projects');
     let projectId = '';
     let projectTag = '';
@@ -35,19 +35,6 @@ exports.main = async (event) => {
     if (project_tag) {
       const proj = (await projCol.where({ _openid: OPENID, name: project_tag }).get()).data[0];
       if (proj) { projectId = proj.project_id; projectTag = project_tag; }
-    }
-
-    if (!projectId) {
-      let inbox = (await projCol.where({ _openid: OPENID, name: '随手记' }).get()).data[0];
-      if (!inbox) {
-        const countRes = await projCol.where({ _openid: OPENID }).count();
-        const color = PROJECT_COLORS[countRes.total % PROJECT_COLORS.length];
-        const project_id = `p_${Date.now()}_${countRes.total}`;
-        await projCol.add({ data: { _openid: OPENID, project_id, name: '随手记', color, created_at: Date.now() } });
-        inbox = { project_id };
-      }
-      projectId = inbox.project_id;
-      projectTag = '随手记';
     }
     // task_id 加随机后缀：子任务批量保存可能落在同毫秒，纯时间戳会碰撞
     const isDaily = repeat === 'daily';

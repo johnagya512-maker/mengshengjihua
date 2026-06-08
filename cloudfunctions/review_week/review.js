@@ -34,7 +34,7 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
   const distribution = Object.keys(byProject)
     .map((pid) => ({
       project_id: pid,
-      name: nameOf[pid] || '随手记',
+      name: nameOf[pid] || '零散',
       color: colorOf[pid] || '#B0AAA2',
       count: byProject[pid],
     }))

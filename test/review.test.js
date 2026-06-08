@@ -40,7 +40,7 @@ eq('done_count 本周', r.done_count, 4);
 eq('top_project 读书', r.top_project.name, '读书');
 eq('top_project count', r.top_project.count, 2);
 eq('分布条数', r.distribution.length, 3);
-eq('无项目归随手记', r.distribution.find((d) => d.project_id === '').name, '随手记');
+eq('无项目归零散', r.distribution.find((d) => d.project_id === '').name, '零散');
 eq('跳过没状态计数', r.skip_counts.没状态, 2);
 eq('跳过总数', r.skip_total, 3);
 eq('耗时样本数', r.duration_bias.sample, 4);
