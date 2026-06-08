@@ -25,10 +25,16 @@ Page({
   async load() {
     try {
       const r = await api.listProjects();
-      // count 圆环分母改用 goal_target（无目标则回退 total_tasks，兼容旧数据/随手记）
       const projects = r.projects.map((p) => {
-        const denom = (p.mode === 'count' || !p.mode) && p.goal_target ? p.goal_target : p.total_tasks;
-        return { ...p, percent: denom ? Math.min(100, Math.round((p.completed_tasks / denom) * 100)) : 0 };
+        // result：进度 = current_value/goal_target；count：completed/goal_target（回退 total_tasks）
+        let percent = 0;
+        if (p.mode === 'result') {
+          percent = p.goal_target ? Math.min(100, Math.round(((p.current_value || 0) / p.goal_target) * 100)) : 0;
+        } else {
+          const denom = (p.mode === 'count' || !p.mode) && p.goal_target ? p.goal_target : p.total_tasks;
+          percent = denom ? Math.min(100, Math.round((p.completed_tasks / denom) * 100)) : 0;
+        }
+        return { ...p, percent };
       });
       this.setData({ projects, loading: false });
       this.drawRings(projects.filter((p) => p.mode === 'count' || !p.mode));
@@ -114,6 +120,30 @@ Page({
           this.load();
         } catch (err: any) {
           wx.showToast({ title: err.msg || '删除失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
+  // ---- result 模式：记一笔 ----
+  recordValue(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    const p: any = this.data.projects.find((x) => x.project_id === id);
+    if (!p) return;
+    wx.showModal({
+      title: `记一笔 · ${p.name}`,
+      editable: true,
+      placeholderText: `本次增加多少${p.goal_unit || ''}（减少填负数）`,
+      success: async (res) => {
+        if (!res.confirm) return;
+        const delta = Number((res.content || '').trim());
+        if (!delta) return wx.showToast({ title: '填个有效数值', icon: 'none' });
+        try {
+          await api.recordValue(id, delta);
+          wx.showToast({ title: '已记一笔', icon: 'success' });
+          this.load();
+        } catch (err: any) {
+          wx.showToast({ title: err.msg || '记录失败', icon: 'none' });
         }
       },
     });

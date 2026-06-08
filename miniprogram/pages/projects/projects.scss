@@ -45,6 +45,11 @@
 .result__bar { width: 100%; height: 14rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); margin: 16rpx 0 8rpx; overflow: hidden; }
 .result__fill { height: 100%; border-radius: 999rpx; transition: width 0.3s; }
 .result__goal { font-size: 24rpx; color: var(--color-text-sub); text-align: center; }
+.result__record {
+  margin-top: 16rpx; text-align: center; font-size: 26rpx; font-weight: 600;
+  color: var(--color-primary); padding: 12rpx; border-radius: 12rpx;
+  background: rgba(122,158,126,0.10);
+}
 
 /* ===== 新建项目弹窗 ===== */
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-end; }

@@ -70,4 +70,9 @@ export const api = {
   deleteProject(project_id: string): Promise<{ deleted: boolean }> {
     return callCloud('project_delete', { project_id });
   },
+
+  // result 模式记一笔：delta 累加到 current_value，跨周期(月/周)先归零
+  recordValue(project_id: string, delta: number): Promise<{ project_id: string; current_value: number; current_value_at: number }> {
+    return callCloud('project_record', { project_id, delta });
+  },
 };

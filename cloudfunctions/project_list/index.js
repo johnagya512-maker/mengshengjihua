@@ -19,6 +19,17 @@ function weekStartMs() {
   return monday - 8 * 3600 * 1000;
 }
 
+// result 周期起点：跨周期(月/周)且上次记录在本周期前 → 展示值归零（与 project_record/period 一致）
+function effectiveValue(cycle, currentValue, lastAt) {
+  if (cycle !== 'month' && cycle !== 'week') return currentValue || 0;
+  if (!lastAt) return currentValue || 0;
+  const d = new Date(Date.now() + 8 * 3600 * 1000);
+  let start;
+  if (cycle === 'month') start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - 8 * 3600 * 1000;
+  else { const dow = (d.getUTCDay() + 6) % 7; start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow) - 8 * 3600 * 1000; }
+  return lastAt < start ? 0 : (currentValue || 0);
+}
+
 // streak 推进指标：连续达标天数 / 本周达标天数 / 累计完成件数
 // daily_quota = 每日标准件数（如日更1个）。当天完成数 >= quota 即「达标」。
 function streakMetrics(doneList, dailyQuota) {
@@ -98,7 +109,7 @@ exports.main = async () => {
         daily_quota: p.daily_quota || null,
         goal_unit: p.goal_unit || '',
         cycle: p.cycle || 'none',
-        current_value: p.current_value || 0,
+        current_value: effectiveValue(p.cycle || 'none', p.current_value, p.current_value_at),
         total_tasks: list.length,
         completed_tasks: completed,
         groups: groupByParent(list),

@@ -26,6 +26,7 @@
           <view class="result__goal">目标 {{item.goal_target}}{{item.goal_unit}}</view>
         </view>
         <view class="ring-item__name">{{item.name}}</view>
+        <view class="result__record" data-id="{{item.project_id}}" catchtap="recordValue">＋ 记一笔</view>
       </block>
       <!-- count 有限型（含旧数据/随手记）：沿用圆环 -->
       <block wx:else>

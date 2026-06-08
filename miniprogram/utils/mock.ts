@@ -43,6 +43,21 @@ function weekStartMs() {
   const monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow);
   return monday - 8 * 3600 * 1000;
 }
+// result 周期判断（复刻 cloudfunctions/project_record/period.js）
+function periodStartMs(cycle: string) {
+  const d = new Date(Date.now() + 8 * 3600 * 1000);
+  if (cycle === 'month') return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - 8 * 3600 * 1000;
+  if (cycle === 'week') {
+    const dow = (d.getUTCDay() + 6) % 7;
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow) - 8 * 3600 * 1000;
+  }
+  return 0;
+}
+function shouldReset(cycle: string, lastAt: number) {
+  if (cycle !== 'month' && cycle !== 'week') return false;
+  if (!lastAt) return false;
+  return lastAt < periodStartMs(cycle);
+}
 function streakMetrics(doneList: any[], dailyQuota: number) {
   const quota = dailyQuota > 0 ? dailyQuota : 1;
   const byDay: Record<string, number> = {};
@@ -86,6 +101,7 @@ export function mockCall(name: string, data: any): Promise<any> {
         goal_unit: data.goal_unit || '',
         cycle: data.cycle || 'none',
         current_value: data.mode === 'result' ? 0 : null,
+        current_value_at: 0,
       };
       return delay({ project_id: mem.projects[nm].project_id, name: nm, color: mem.projects[nm].color, mode: mem.projects[nm].mode, existed: false });
     }
@@ -180,6 +196,16 @@ export function mockCall(name: string, data: any): Promise<any> {
       return delay({ deleted: true });
     }
 
+    case 'project_record': {
+      const proj: any = Object.values(mem.projects).find((p: any) => p.project_id === data.project_id);
+      if (!proj || proj.mode !== 'result') return Promise.reject({ code: 422, msg: '只有数值型项目能记一笔' });
+      const cycle = proj.cycle || 'none';
+      const base = shouldReset(cycle, proj.current_value_at || 0) ? 0 : (proj.current_value || 0);
+      proj.current_value = Math.round((base + Number(data.delta)) * 100) / 100;
+      proj.current_value_at = Date.now();
+      return delay({ project_id: proj.project_id, current_value: proj.current_value, current_value_at: proj.current_value_at });
+    }
+
     case 'project_delete': {
       const proj = Object.values(mem.projects).find((p) => p.project_id === data.project_id);
       if (proj) {
@@ -233,7 +259,7 @@ export function mockCall(name: string, data: any): Promise<any> {
           daily_quota: p.daily_quota || null,
           goal_unit: p.goal_unit || '',
           cycle: p.cycle || 'none',
-          current_value: p.current_value || 0,
+          current_value: shouldReset(p.cycle || 'none', p.current_value_at || 0) ? 0 : (p.current_value || 0),
           total_tasks: list.length,
           completed_tasks: doneList.length,
           tasks: list,
