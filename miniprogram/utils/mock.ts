@@ -64,7 +64,6 @@ function fakeParse(text: string, allowSplit = false, forcePlan = false) {
 function nearestDurMock(d: number) {
   return [15, 30, 45, 60, 75, 90, 105, 120].reduce((p, c) => (Math.abs(c - d) < Math.abs(p - d) ? c : p), 60);
 }
-}
 
 function delay<T>(data: T, ms = 300): Promise<T> {
   return new Promise((res) => setTimeout(() => res(data), ms));

@@ -1,5 +1,5 @@
 <view class="ob">
-  <view class="ob__progress">{{step}} / 2</view>
+  <view class="ob__progress">{{step}} / 3</view>
 
   <!-- 问题 1：自然醒（推导高峰） -->
   <view wx:if="{{step === 1}}" class="ob__step">
@@ -20,6 +20,17 @@
       <view wx:for="{{focusOptions}}" wx:key="label"
             class="ob__opt {{focusIdx === index ? 'ob__opt--on' : ''}}"
             data-i="{{index}}" bindtap="pickFocus">{{item.label}}</view>
+    </view>
+  </view>
+
+  <!-- 问题 3：每日可投入时长（容量初值，后续隐形学习微调） -->
+  <view wx:if="{{step === 3}}" class="ob__step">
+    <view class="ob__bubble">每天大概能投入多少时间？</view>
+    <view class="ob__hint">先给个大概，之后我们会按你实际完成的情况悄悄校准</view>
+    <view class="ob__list">
+      <view wx:for="{{workHoursOptions}}" wx:key="value"
+            class="ob__opt {{workIdx === index ? 'ob__opt--on' : ''}}"
+            data-i="{{index}}" bindtap="pickWork">{{item.label}}</view>
     </view>
   </view>
 </view>

@@ -20,16 +20,26 @@ const FOCUS_OPTIONS = [
   { value: 45, label: '🤷 不清楚（先按 45）' },
 ];
 
-// 每日容量默认种子（小时）。真正的工时在「定项目目标」时按项目匹配，并由实际耗时校正。
-const DEFAULT_IDEAL_HOURS = 6;
+// Q3 每日可投入时长 → 容量初值。后续由 profile_learn 按实际完成情况隐形微调。
+const WORK_HOURS_OPTIONS = [
+  { value: 2, label: '🌱 1~2 小时（业余 / 通勤间隙）' },
+  { value: 4, label: '☕ 3~4 小时（有本职，挤时间）' },
+  { value: 6, label: '💪 5~6 小时（较自由）' },
+  { value: 8, label: '🔥 8 小时以上（全职投入）' },
+];
+
+// 每日容量默认种子（小时）。仅当用户跳过/异常时兜底，正常由 Q3 选定、再由实际耗时校正。
+const DEFAULT_IDEAL_HOURS = 4;
 
 Page({
   data: {
     step: 1,
     wakeOptions: WAKE_OPTIONS,
     focusOptions: FOCUS_OPTIONS,
+    workHoursOptions: WORK_HOURS_OPTIONS,
     wakeIdx: -1,
     focusIdx: -1,
+    workIdx: -1,
   },
 
   pickWake(e: WechatMiniprogram.TouchEvent) {
@@ -38,17 +48,22 @@ Page({
   },
   pickFocus(e: WechatMiniprogram.TouchEvent) {
     this.setData({ focusIdx: Number(e.currentTarget.dataset.i) });
+    setTimeout(() => this.setData({ step: 3 }), 220);
+  },
+  pickWork(e: WechatMiniprogram.TouchEvent) {
+    this.setData({ workIdx: Number(e.currentTarget.dataset.i) });
     setTimeout(() => this.finish(), 220); // 最后一问，选完直接完成
   },
 
   async finish() {
     const wake = WAKE_OPTIONS[this.data.wakeIdx];
+    const workHours = this.data.workIdx >= 0 ? WORK_HOURS_OPTIONS[this.data.workIdx].value : DEFAULT_IDEAL_HOURS;
     const profile = {
       peak_hours: wake.peak,                          // 由作息推导
       wake_type: wake.value,
       focus_tolerance: FOCUS_OPTIONS[this.data.focusIdx].value,
       pain_task_types: [],
-      ideal_work_hours: DEFAULT_IDEAL_HOURS,           // 默认种子，待定项目时匹配
+      ideal_work_hours: workHours,                     // 用户设定初值，后续隐形学习微调
       user_id: getUserId(),
     };
     try {
