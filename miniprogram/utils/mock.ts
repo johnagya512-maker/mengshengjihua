@@ -210,6 +210,7 @@ export function mockCall(name: string, data: any): Promise<any> {
             action: tpl.action, duration: tpl.duration, vision_statement: tpl.vision_statement,
             type: 'normal', status: 'pending', scheduled_time: '', is_priority: !!tpl.is_priority,
             created_at: mem.seq, repeat: 'none', repeat_parent_id: tpl.task_id, repeat_date: today,
+            from_project: !!tpl.from_project,
           });
         });
       }
@@ -330,8 +331,9 @@ export function mockCall(name: string, data: any): Promise<any> {
 
     case 'project_list': {
       const projects = Object.values(mem.projects).map((p: any) => {
-        const taskList = mem.tasks.filter((t) => t.project_id === p.project_id && t.status !== 'template');
-        const list = taskList.map((t) => ({ task_id: t.task_id, action: t.action, status: t.status }));
+        // 完全解耦：项目只认项目内自建任务（from_project），今日清单/AI 拆解的不倒灌
+        const taskList = mem.tasks.filter((t) => t.project_id === p.project_id && t.status !== 'template' && t.from_project);
+        const list = taskList.map((t) => ({ task_id: t.task_id, action: t.action, status: t.status, parent_task_id: t.parent_task_id || '', parent_action: t.parent_action || '' }));
         const doneList = taskList.filter((t) => t.status === 'done');
         const mode = p.mode || 'count';
         const base = {

@@ -42,6 +42,7 @@ interface Task {
   parent_duration?: number;    // 大任务总时长（分钟）。子任务不单独计时，时间只在大任务上
   sub_index?: number;          // 子任务序号（从 0 起），用于展示「第 N 步」
   sub_total?: number;          // 该大任务的子任务总数
+  from_project?: boolean;      // true=用户在项目页内自建（项目只认这些）；今日清单/AI 拆解的为 false
   repeat?: 'daily' | 'none';   // daily=每日重复母本，每天实例化进清单
   repeat_date?: string;        // 实例所属日期 YYYY-MM-DD（由母本克隆而来）
   repeat_parent_id?: string;   // 实例指向其母本 task_id

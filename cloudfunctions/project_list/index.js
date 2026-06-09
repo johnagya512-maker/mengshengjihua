@@ -87,12 +87,13 @@ exports.main = async () => {
     const projRes = await db.collection('projects').where({ _openid: OPENID }).get();
     const taskRes = await db.collection('tasks')
       .where({ _openid: OPENID })
-      .field({ task_id: true, action: true, status: true, project_id: true, parent_task_id: true, parent_action: true, finished_at: true })
+      .field({ task_id: true, action: true, status: true, project_id: true, parent_task_id: true, parent_action: true, finished_at: true, from_project: true })
       .get();
 
     const tasksByProject = {};
     taskRes.data.forEach((t) => {
       if (t.status === 'template') return; // 每日重复母本：不计入任务点/统计，只用于实例化
+      if (!t.from_project) return; // 完全解耦：只认项目内自建任务，今日清单/AI 拆解的不倒灌进项目
       (tasksByProject[t.project_id] = tasksByProject[t.project_id] || []).push({
         task_id: t.task_id, action: t.action, status: t.status,
         parent_task_id: t.parent_task_id || '', parent_action: t.parent_action || '',

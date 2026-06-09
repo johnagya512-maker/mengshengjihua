@@ -17,7 +17,7 @@ function genId() { return `t_${Date.now()}_${Math.random().toString(36).slice(2,
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, parent_duration, sub_index, sub_total, repeat } = event;
+  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, parent_duration, sub_index, sub_total, repeat, from_project } = event;
   if (!OPENID) return fail(400, '登录态无效');
 
   // 字段校验。愿景非必填：碎任务留白，仅「大事」的步骤才配愿景
@@ -54,6 +54,8 @@ exports.main = async (event) => {
       parent_duration: Number(parent_duration) || 0,
       sub_index: Number.isInteger(sub_index) ? sub_index : -1,
       sub_total: Number(sub_total) || 0,
+      // 来源标记：true=用户在项目页内自建（项目只认这些）；今日清单/AI 拆解的任务为 false，不倒灌进项目
+      from_project: !!from_project,
     };
 
     if (isDaily) {

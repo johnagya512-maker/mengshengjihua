@@ -94,6 +94,7 @@ Page({
     try {
       await api.saveTask({
         action, duration: 30, project_tag: p.name, vision_statement: '',
+        from_project: true,
         ...(this.data.addRepeat ? { repeat: 'daily' } : {}),
       });
       this.setData({ addingId: '' });

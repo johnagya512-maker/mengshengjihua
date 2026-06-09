@@ -59,6 +59,7 @@ exports.main = async (event) => {
               type: 'normal', status: 'pending', scheduled_time: '',
               is_priority: !!tpl.is_priority, created_at: Date.now(),
               parent_task_id: '', parent_action: '',
+              from_project: !!tpl.from_project, // 继承母本来源标记：项目内每日任务的实例仍归项目
               repeat: 'none', repeat_parent_id: tpl.task_id, repeat_date: today,
             },
           }).catch(() => {})
