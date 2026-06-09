@@ -22,7 +22,14 @@ exports.main = async (event) => {
 
   // 字段校验。愿景非必填：碎任务留白，仅「大事」的步骤才配愿景
   if (!action || action.length > 100) return fail(422, '任务目标无效');
-  if (!DURATION_ENUM.includes(Number(duration))) return fail(422, '请选择耗时');
+  // 子任务(有 parent_task_id)的 duration 是大任务总时长的均摊值，不必是标准枚举，只要是正数即可；
+  // 独立任务仍要求选标准耗时档位。
+  const durNum = Number(duration);
+  if (parent_task_id) {
+    if (!(durNum > 0)) return fail(422, '耗时无效');
+  } else if (!DURATION_ENUM.includes(durNum)) {
+    return fail(422, '请选择耗时');
+  }
   if (vision_statement && vision_statement.length > 80) return fail(422, '愿景文案过长');
 
   try {

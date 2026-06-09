@@ -306,8 +306,10 @@ Page({
         const per = Math.max(1, Math.round(total / n));
         for (let i = 0; i < n; i++) {
           const s = c.subtasks[i];
+          // 最后一步吸收取整余数，保证各步之和 = 大任务总时长（容量统计精确）
+          const dur = i === n - 1 ? Math.max(1, total - per * (n - 1)) : per;
           await api.saveTask({
-            action: s.action, duration: per,
+            action: s.action, duration: dur,
             project_tag: c.project_tag, vision_statement: c.vision_statement,
             parent_task_id: parentTaskId, parent_action: c.action,
             parent_duration: total, sub_index: i, sub_total: n,
