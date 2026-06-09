@@ -50,9 +50,27 @@ export function startVoice(callbacks: VoiceCallbacks): void {
   if (!mgr) { callbacks.onError('语音功能未开启'); return; }
   cbs = callbacks;
   ensureBound(mgr);
-  wx.authorize({
-    scope: 'scope.record',
-    success: () => mgr.start({ lang: 'zh_CN' }),
+  wx.getSetting({
+    success: (s) => {
+      if (s.authSetting['scope.record']) {
+        mgr.start({ lang: 'zh_CN' });
+        return;
+      }
+      wx.authorize({
+        scope: 'scope.record',
+        success: () => mgr.start({ lang: 'zh_CN' }),
+        fail: () => {
+          // 已拒绝过：引导去设置页重新打开麦克风权限
+          wx.showModal({
+            title: '需要麦克风权限',
+            content: '开启后即可长按说话录入任务',
+            confirmText: '去开启',
+            success: (r) => { if (r.confirm) wx.openSetting(); },
+          });
+          callbacks.onError('需要麦克风权限');
+        },
+      });
+    },
     fail: () => callbacks.onError('需要麦克风权限'),
   });
 }

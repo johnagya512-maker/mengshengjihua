@@ -25,5 +25,16 @@
   },
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.5",
+      "provider": "wx069ba97219f66d99"
+    }
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "用于把你说的话转成任务文字"
+    }
+  },
   "style": "v2"
 }
