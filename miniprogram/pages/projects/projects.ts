@@ -34,7 +34,7 @@ Page({
           const denom = (p.mode === 'count' || !p.mode) && p.goal_target ? p.goal_target : p.total_tasks;
           percent = denom ? Math.min(100, Math.round((p.completed_tasks / denom) * 100)) : 0;
         }
-        return { ...p, percent, initial: (p.name || '?').trim().charAt(0) };
+        return { ...p, percent, initial: (p.name || '?').trim().charAt(0), auto_badges: p.auto_badges || [], achievements: p.achievements || [] };
       });
       this.setData({ projects, loading: false });
     } catch (e) {
@@ -119,6 +119,50 @@ Page({
           this.load();
         } catch (err: any) {
           wx.showToast({ title: err.msg || '记录失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
+  // ---- 手动成就：记里程碑 / 删里程碑 ----
+  addAchievement(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    const p: any = this.data.projects.find((x) => x.project_id === id);
+    if (!p) return;
+    wx.showModal({
+      title: `记一个成就 · ${p.name}`,
+      editable: true,
+      placeholderText: '如：这条笔记破了 10 万赞',
+      success: async (res) => {
+        if (!res.confirm) return;
+        const text = (res.content || '').trim();
+        if (!text) return wx.showToast({ title: '写点什么吧', icon: 'none' });
+        try {
+          await api.addAchievement(id, text);
+          wx.showToast({ title: '记下了 🎉', icon: 'none' });
+          this.load();
+        } catch (err: any) {
+          wx.showToast({ title: err.msg || '记录失败', icon: 'none' });
+        }
+      },
+    });
+  },
+  deleteAchievement(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    const ach = e.currentTarget.dataset.ach as string;
+    if (!id || !ach) return;
+    wx.showModal({
+      title: '删除成就',
+      content: '确定删掉这条成就？',
+      confirmText: '删除',
+      confirmColor: '#E05A4F',
+      success: async (res) => {
+        if (!res.confirm) return;
+        try {
+          await api.deleteAchievement(id, ach);
+          this.load();
+        } catch (err: any) {
+          wx.showToast({ title: err.msg || '删除失败', icon: 'none' });
         }
       },
     });

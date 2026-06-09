@@ -56,6 +56,29 @@ function streakMetrics(doneList, dailyQuota) {
   return { streak_days: streak, week_met_days: weekMet, total_done: doneList.length };
 }
 
+// 自动徽章：按现有数据动态算，不存库
+// streak: 连续达标 ≥7/30/100 天；count: 完成数跨 10/50/100 件或达成目标；result: 进度≥100%
+function autoBadges(mode, metrics) {
+  const badges = [];
+  if (mode === 'streak') {
+    const d = metrics.streak_days || 0;
+    if (d >= 100) badges.push({ key: 'streak_100', label: '坚持 100 天' });
+    else if (d >= 30) badges.push({ key: 'streak_30', label: '坚持 30 天' });
+    else if (d >= 7) badges.push({ key: 'streak_7', label: '坚持 7 天' });
+  } else if (mode === 'result') {
+    if (metrics.goal_target && (metrics.current_value || 0) >= metrics.goal_target) {
+      badges.push({ key: 'goal_done', label: '达成目标 🎯' });
+    }
+  } else {
+    const c = metrics.completed_tasks || 0;
+    if (metrics.goal_target && c >= metrics.goal_target) badges.push({ key: 'goal_done', label: '达成目标 🎯' });
+    if (c >= 100) badges.push({ key: 'count_100', label: '完成 100 件' });
+    else if (c >= 50) badges.push({ key: 'count_50', label: '完成 50 件' });
+    else if (c >= 10) badges.push({ key: 'count_10', label: '完成 10 件' });
+  }
+  return badges;
+}
+
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) return fail(400, '登录态无效');
@@ -114,11 +137,13 @@ exports.main = async () => {
         completed_tasks: completed,
         groups: groupByParent(list),
         tasks: list,
+        achievements: p.achievements || [],
       };
       if (mode === 'streak') {
-        return { ...base, ...streakMetrics(doneList, p.daily_quota) };
+        const m = { ...base, ...streakMetrics(doneList, p.daily_quota) };
+        return { ...m, auto_badges: autoBadges('streak', m) };
       }
-      return base;
+      return { ...base, auto_badges: autoBadges(mode, base) };
     });
 
     return ok({ projects });

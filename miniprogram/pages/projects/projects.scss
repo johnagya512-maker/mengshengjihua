@@ -28,6 +28,17 @@
 }
 
 .dots { width: 100%; margin-top: 28rpx; border-top: 2rpx solid rgba(0,0,0,0.06); padding-top: 24rpx; }
+
+/* 成就置顶高亮：暖色卡 */
+.ach { background: rgba(232,185,138,0.16); border-radius: 16rpx; padding: 20rpx; margin-bottom: 20rpx; }
+.ach__badges { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 8rpx; }
+.ach__badge { font-size: 24rpx; font-weight: 600; color: #B5651D; background: rgba(255,255,255,0.6); padding: 6rpx 18rpx; border-radius: 999rpx; }
+.ach__item { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 0; }
+.ach__text { font-size: 26rpx; color: var(--color-text); flex: 1; }
+.ach__del { font-size: 36rpx; color: var(--color-text-sub); padding: 0 12rpx; }
+.ach__del:active { color: #E05A4F; }
+.ach__add { font-size: 24rpx; color: var(--color-text-sub); text-align: center; padding: 12rpx; margin-bottom: 16rpx; }
+.ach__add:active { color: var(--color-primary); }
 .dotrow { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
 .dotrow__action { font-size: 26rpx; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dot { width: 20rpx; height: 20rpx; border-radius: 50%; flex-shrink: 0; }

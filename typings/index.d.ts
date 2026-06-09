@@ -63,6 +63,19 @@ interface Project {
   streak_days?: number;        // 连续达标天数
   week_met_days?: number;      // 本周达标天数
   total_done?: number;         // 累计完成件数
+  // ===== 成就 =====
+  achievements?: Achievement[];        // 手动记的里程碑（持久化）
+  auto_badges?: AutoBadge[];           // 系统按数据动态算的徽章（不存库）
+}
+
+interface Achievement {
+  ach_id: string;
+  text: string;
+  created_at: number;
+}
+interface AutoBadge {
+  key: string;                 // 如 streak_7 / count_50 / goal_done
+  label: string;               // 展示文字，如「坚持 7 天」
 }
 
 interface SubTask {

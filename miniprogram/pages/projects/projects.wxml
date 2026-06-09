@@ -25,6 +25,18 @@
       </block>
 
       <view wx:if="{{activeId === item.project_id}}" class="dots">
+        <!-- 成就置顶高亮：系统徽章 + 手动里程碑 -->
+        <view wx:if="{{item.auto_badges.length || item.achievements.length}}" class="ach" catchtap="stopPropagation">
+          <view wx:if="{{item.auto_badges.length}}" class="ach__badges">
+            <text wx:for="{{item.auto_badges}}" wx:for-item="b" wx:key="key" class="ach__badge">🏅 {{b.label}}</text>
+          </view>
+          <view wx:for="{{item.achievements}}" wx:for-item="a" wx:key="ach_id" class="ach__item">
+            <text class="ach__text">🎉 {{a.text}}</text>
+            <text class="ach__del" data-id="{{item.project_id}}" data-ach="{{a.ach_id}}" catchtap="deleteAchievement">×</text>
+          </view>
+        </view>
+        <view class="ach__add" data-id="{{item.project_id}}" catchtap="addAchievement">＋ 记一个成就</view>
+
         <block wx:for="{{activeGroups}}" wx:for-item="g" wx:key="index">
           <view wx:if="{{g.is_group}}" class="group">
             <view class="group__title">📌 {{g.parent_action}}</view>

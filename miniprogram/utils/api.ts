@@ -80,4 +80,12 @@ export const api = {
   recordValue(project_id: string, delta: number): Promise<{ project_id: string; current_value: number; current_value_at: number }> {
     return callCloud('project_record', { project_id, delta });
   },
+
+  // 手动成就：记里程碑 / 删里程碑
+  addAchievement(project_id: string, text: string): Promise<{ achievement: Achievement }> {
+    return callCloud('project_achievement', { action: 'add', project_id, text });
+  },
+  deleteAchievement(project_id: string, ach_id: string): Promise<{ deleted: boolean }> {
+    return callCloud('project_achievement', { action: 'delete', project_id, ach_id });
+  },
 };

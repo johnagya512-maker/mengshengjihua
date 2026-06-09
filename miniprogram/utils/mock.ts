@@ -73,6 +73,25 @@ function delay<T>(data: T, ms = 300): Promise<T> {
 function cstDate(ms: number) {
   return new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
 }
+// 自动徽章（复刻云函数 autoBadges）
+function autoBadgesMock(mode: string, m: any) {
+  const b: any[] = [];
+  if (mode === 'streak') {
+    const d = m.streak_days || 0;
+    if (d >= 100) b.push({ key: 'streak_100', label: '坚持 100 天' });
+    else if (d >= 30) b.push({ key: 'streak_30', label: '坚持 30 天' });
+    else if (d >= 7) b.push({ key: 'streak_7', label: '坚持 7 天' });
+  } else if (mode === 'result') {
+    if (m.goal_target && (m.current_value || 0) >= m.goal_target) b.push({ key: 'goal_done', label: '达成目标 🎯' });
+  } else {
+    const c = m.completed_tasks || 0;
+    if (m.goal_target && c >= m.goal_target) b.push({ key: 'goal_done', label: '达成目标 🎯' });
+    if (c >= 100) b.push({ key: 'count_100', label: '完成 100 件' });
+    else if (c >= 50) b.push({ key: 'count_50', label: '完成 50 件' });
+    else if (c >= 10) b.push({ key: 'count_10', label: '完成 10 件' });
+  }
+  return b;
+}
 function weekStartMs() {
   const d = new Date(Date.now() + 8 * 3600 * 1000);
   const dow = (d.getUTCDay() + 6) % 7;
@@ -300,11 +319,31 @@ export function mockCall(name: string, data: any): Promise<any> {
           total_tasks: list.length,
           completed_tasks: doneList.length,
           tasks: list,
+          achievements: p.achievements || [],
         };
-        if (mode === 'streak') return { ...base, ...streakMetrics(doneList, p.daily_quota) };
-        return base;
+        if (mode === 'streak') {
+          const m = { ...base, ...streakMetrics(doneList, p.daily_quota) };
+          return { ...m, auto_badges: autoBadgesMock('streak', m) };
+        }
+        return { ...base, auto_badges: autoBadgesMock(mode, base) };
       });
       return delay({ projects });
+    }
+
+    case 'project_achievement': {
+      const p: any = Object.values(mem.projects).find((x: any) => x.project_id === data.project_id);
+      if (!p) return Promise.reject({ code: 404, msg: '项目不存在' });
+      p.achievements = p.achievements || [];
+      if (data.action === 'add') {
+        const ach = { ach_id: `a_${++mem.seq}`, text: String(data.text || '').trim(), created_at: Date.now() };
+        p.achievements.push(ach);
+        return delay({ achievement: ach });
+      }
+      if (data.action === 'delete') {
+        p.achievements = p.achievements.filter((a: any) => a.ach_id !== data.ach_id);
+        return delay({ deleted: true });
+      }
+      return Promise.reject({ code: 422, msg: '未知操作' });
     }
 
     default:
