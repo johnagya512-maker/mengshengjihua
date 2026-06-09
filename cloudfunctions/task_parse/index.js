@@ -7,6 +7,22 @@ const db = cloud.database();
 function ok(data) { return { code: 200, data }; }
 function fail(code, msg) { return { code, msg }; }
 
+// 内容安全检测：违规输入在发往境外 AI 前就拦下（既合规也省 AI 调用）。
+// 检测服务异常时放行，避免误伤——安全网而非硬闸门。
+async function isTextSafe(text, openid) {
+  const content = String(text || '').trim();
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({
+      version: 2, scene: 1, openid, content: content.slice(0, 2500),
+    });
+    return r && r.result && r.result.suggest === 'pass';
+  } catch (e) {
+    console.error('msgSecCheck 异常，放行:', e && e.errCode);
+    return true;
+  }
+}
+
 const DURATION_ENUM = [15, 30, 45, 60, 75, 90, 105, 120];
 
 function sanitize(text) {
@@ -87,6 +103,9 @@ exports.main = async (event) => {
   if (!isValidTaskInput(raw)) return fail(422, '没太理解，能再说清楚一点吗？');
   const input = sanitize(raw);
   const forcePlan = !!event.force_plan; // 项目规划：强制把目标拆成路线，不论是否判为大事
+
+  // 内容安全：违规输入在发往境外 AI 前拦下（合规 + 省调用）
+  if (!(await isTextSafe(input, OPENID))) return fail(422, '内容含违规信息，换个说法试试');
 
   let existingProjects = [];
   let focusTolerance = 45;

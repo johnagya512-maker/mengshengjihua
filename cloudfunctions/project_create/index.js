@@ -6,6 +6,16 @@ const db = cloud.database();
 function ok(data) { return { code: 200, data }; }
 function fail(code, msg) { return { code, msg }; }
 
+// 内容安全：项目名（UGC）入库前检测，异常放行（安全网而非硬闸门）
+async function isTextSafe(text, openid) {
+  const content = String(text || '').trim();
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({ version: 2, scene: 1, openid, content: content.slice(0, 2500) });
+    return r && r.result && r.result.suggest === 'pass';
+  } catch (e) { console.error('msgSecCheck 异常，放行:', e && e.errCode); return true; }
+}
+
 const PROJECT_COLORS = ['#7A9E7E', '#E8B98A', '#A8C0D6', '#D6A8C0', '#C0D6A8', '#D6C7A8', '#A8D6CF', '#B8A8D6'];
 const MODES = ['count', 'streak', 'result'];
 
@@ -14,6 +24,9 @@ exports.main = async (event) => {
   const name = (event.name || '').trim();
   if (!OPENID) return fail(400, '登录态无效');
   if (!name || name.length > 30) return fail(422, '项目名 1~30 字');
+
+  // 内容安全：项目名违规拦截
+  if (!(await isTextSafe(name, OPENID))) return fail(422, '项目名含违规信息，换一个试试');
 
   // 模式与标准（用户建项目时手动选，不调 AI）
   const mode = MODES.includes(event.mode) ? event.mode : 'count';

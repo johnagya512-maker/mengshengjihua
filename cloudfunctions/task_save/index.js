@@ -15,6 +15,28 @@ function todayStr() {
 }
 function genId() { return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
 
+// 内容安全检测：违规文本拦截在入库前。
+// 返回 true=安全可放行；false=明确违规需拦截。
+// 检测服务自身异常（网络/额度）时放行，避免误伤正常用户——安全网而非硬闸门。
+async function isTextSafe(text, openid) {
+  const content = String(text || '').trim();
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({
+      version: 2,
+      scene: 1,               // 1=资料类文本
+      openid,
+      content: content.slice(0, 2500), // 接口上限
+    });
+    // result.suggest: pass/review/risky；label 非 100 表示命中违规类型
+    return r && r.result && r.result.suggest === 'pass';
+  } catch (e) {
+    // 40001/-1 等接口异常：不阻断正常使用
+    console.error('msgSecCheck 异常，放行:', e && e.errCode);
+    return true;
+  }
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, parent_duration, sub_index, sub_total, repeat, from_project } = event;
@@ -31,6 +53,10 @@ exports.main = async (event) => {
     return fail(422, '请选择耗时');
   }
   if (vision_statement && vision_statement.length > 80) return fail(422, '愿景文案过长');
+
+  // 内容安全：用户填写的任务/愿景文本入库前过一遍微信文本检测，违规拦截
+  const safe = await isTextSafe(`${action} ${vision_statement || ''}`, OPENID);
+  if (!safe) return fail(422, '内容含违规信息，换个说法试试');
 
   try {
     // 归类规则：命中用户已建的同名项目则归入；否则不归任何项目（project_id 留空）。
