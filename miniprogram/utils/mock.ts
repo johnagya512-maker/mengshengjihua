@@ -48,9 +48,9 @@ function fakeParse(text: string, allowSplit = false, forcePlan = false) {
     };
   }
 
-  // 原子小事：短文本且无「项目/方案/上线」等大事词 → 不拆，诚实告知够小
-  const bigWords = /(项目|方案|上线|筹备|系统|完整|策划|搭建|重构)/;
-  if (t.length <= 8 && !bigWords.test(t)) {
+  // 原子小事：真正一步完成的动作 → 不拆（开关开了也不硬拆）。其余倾向于拆。
+  const atomWords = /(回|发条|发个|打个|倒|喝|看一眼|签|删|存|关掉|打开)/;
+  if (t.length <= 6 && atomWords.test(t)) {
     return { ...single, vision_statement: '' };
   }
 
