@@ -24,18 +24,19 @@
   position: relative; padding: 0 24rpx; max-width: 80%; margin-bottom: 8rpx;
 }
 
-/* 时长选择：大号数字 + 常用档位芯片 */
-.focus__dur { display: flex; flex-direction: column; align-items: center; margin-top: 88rpx; }
-.focus__durbox { display: flex; align-items: baseline; gap: 12rpx; margin-bottom: 40rpx; }
-.focus__durval { font-size: 112rpx; font-weight: 700; line-height: 1; color: var(--color-text); }
-.focus__durunit { font-size: 28rpx; color: var(--color-text-sub); }
-.focus__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 20rpx; }
-.focus__chip {
-  min-width: 96rpx; height: 76rpx; line-height: 76rpx; text-align: center; padding: 0 20rpx;
-  border-radius: 999rpx; background: var(--color-card); color: var(--color-text-sub);
-  font-size: 30rpx; box-shadow: var(--shadow-card);
+/* 时长步进器 ±15 */
+.focus__dur { display: flex; align-items: center; gap: 48rpx; margin-top: 88rpx; }
+.focus__adjust {
+  width: 96rpx; height: 96rpx; line-height: 92rpx; text-align: center;
+  border-radius: 50%; background: var(--color-card); color: var(--color-primary);
+  font-size: 44rpx; box-shadow: var(--shadow-card);
 }
-.focus__chip.is-on { background: var(--color-primary); color: #fff; font-weight: 600; }
+.focus__adjust.is-disabled { color: var(--color-text-sub); opacity: 0.35; }
+.focus__durbox { display: flex; flex-direction: column; align-items: center; min-width: 180rpx; }
+.focus__durval { font-size: 96rpx; font-weight: 700; line-height: 1; color: var(--color-text); }
+.focus__durunit { font-size: 26rpx; color: var(--color-text-sub); margin-top: 12rpx; }
+/* 与每日可投入时间的连结提示 */
+.focus__cap { font-size: 26rpx; color: var(--color-text-sub); margin-top: 36rpx; text-align: center; }
 
 .focus__go, .focus__complete { width: 100%; height: 100rpx; font-size: 32rpx; }
 
