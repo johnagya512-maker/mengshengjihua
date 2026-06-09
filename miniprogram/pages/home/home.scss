@@ -75,7 +75,10 @@
 
 /* 已完成 / 跳过留痕：划线置灰，用户自删 */
 .done { margin-top: 56rpx; }
-.done__title { font-size: 26rpx; color: var(--color-text-sub); margin-bottom: 20rpx; }
+.done__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20rpx; }
+.done__title { font-size: 26rpx; color: var(--color-text-sub); }
+.done__clear { font-size: 26rpx; color: var(--color-text-sub); padding: 6rpx 16rpx; }
+.done__clear:active { color: #E05A4F; }
 .done__item {
   display: flex; align-items: center; gap: 20rpx;
   padding: 20rpx 28rpx; margin-bottom: 12rpx;

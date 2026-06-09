@@ -381,4 +381,27 @@ Page({
         wx.showToast({ title: '删除失败，下次刷新会恢复', icon: 'none' });
       });
   },
+
+  // 一键清空已完成/跳过留痕
+  clearDone() {
+    const ids = this.data.doneTasks.map((t) => t.task_id);
+    if (!ids.length) return;
+    wx.showModal({
+      title: '清空已完成',
+      content: `清掉这 ${ids.length} 条完成/跳过的记录？不影响项目里的统计。`,
+      confirmText: '清空',
+      confirmColor: '#E05A4F',
+      success: async (res) => {
+        if (!res.confirm) return;
+        this.setData({ doneTasks: [] });
+        try {
+          await Promise.all(ids.map((id) => api.deleteTask(id)));
+          this.refresh('add_task'); // 重算容量
+        } catch (e) {
+          wx.showToast({ title: '部分删除失败，下次刷新会恢复', icon: 'none' });
+          this.refresh('add_task');
+        }
+      },
+    });
+  },
 });

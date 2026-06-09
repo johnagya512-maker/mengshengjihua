@@ -38,7 +38,10 @@
 
     <!-- 已完成 / 跳过：划线留痕，用户自己删，不自动消失 -->
     <view wx:if="{{doneTasks.length}}" class="done">
-      <view class="done__title">已完成</view>
+      <view class="done__head">
+        <view class="done__title">已完成</view>
+        <view class="done__clear" bindtap="clearDone">清空</view>
+      </view>
       <view wx:for="{{doneTasks}}" wx:key="task_id" class="done__item {{item.status === 'skip' ? 'done__item--skip' : ''}}">
         <view class="done__action">{{item.action}}</view>
         <view class="done__del" catchtap="deleteDone" data-id="{{item.task_id}}">×</view>
