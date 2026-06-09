@@ -45,11 +45,13 @@
             <view wx:for="{{g.steps}}" wx:for-item="t" wx:key="task_id" class="dotrow dotrow--step">
               <view class="dot dot--{{t.status}}"></view>
               <text class="dotrow__action">{{t.action}}</text>
+              <text class="dotrow__del" data-id="{{t.task_id}}" catchtap="deleteTask">×</text>
             </view>
           </view>
           <view wx:else class="dotrow">
             <view class="dot dot--{{g.status}}"></view>
             <text class="dotrow__action">{{g.action}}</text>
+            <text class="dotrow__del" data-id="{{g.task_id}}" catchtap="deleteTask">×</text>
           </view>
         </block>
 

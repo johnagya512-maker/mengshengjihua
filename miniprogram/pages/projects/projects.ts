@@ -52,6 +52,31 @@ Page({
   // 点空白遮罩收起展开的卡片
   collapse() { this.setData({ activeId: '', activeGroups: [], addingId: '' }); },
 
+  // 删除项目内的单个任务（展开区任务点的「×」）
+  deleteTask(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    if (!id) return;
+    wx.showModal({
+      title: '删除任务',
+      content: '确定删掉这件任务？今日清单里也会一并移除。',
+      confirmText: '删除',
+      confirmColor: '#E05A4F',
+      success: async (res) => {
+        if (!res.confirm) return;
+        try {
+          await api.deleteTask(id);
+          wx.showToast({ title: '已删除', icon: 'none' });
+          // 重载后刷新展开项目的任务点
+          await this.load();
+          const p: any = this.data.projects.find((x) => x.project_id === this.data.activeId);
+          if (p) this.setData({ activeGroups: p.groups || [] });
+        } catch (err: any) {
+          wx.showToast({ title: err.msg || '删除失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
   // ---- 项目内加任务（一键同步今日清单）----
   openAdd(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;

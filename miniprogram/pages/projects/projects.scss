@@ -44,6 +44,8 @@
 .ach__add:active { color: var(--color-primary); }
 .dotrow { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
 .dotrow__action { font-size: 26rpx; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dotrow__del { font-size: 34rpx; color: var(--color-text-sub); padding: 0 8rpx 0 16rpx; flex-shrink: 0; }
+.dotrow__del:active { color: #E05A4F; }
 .dot { width: 20rpx; height: 20rpx; border-radius: 50%; flex-shrink: 0; }
 .dot--done { background: var(--color-primary); }
 .dot--pending { background: transparent; border: 3rpx solid var(--color-text-sub); }
