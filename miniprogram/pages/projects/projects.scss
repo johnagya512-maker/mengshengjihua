@@ -3,9 +3,12 @@
 .projects__title { font-size: 48rpx; font-weight: 600; }
 .projects__loading, .projects__empty { text-align: center; color: var(--color-text-sub); font-size: 28rpx; padding-top: 120rpx; }
 .projects__grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28rpx; }
+/* 展开时的透明遮罩，点击收起；层级低于卡片 */
+.projects__backdrop { position: fixed; inset: 0; z-index: 1; }
 
 .ring-item {
   width: calc(50% - 14rpx); box-sizing: border-box;
+  position: relative; z-index: 2;
   display: flex; flex-direction: column; align-items: center; padding: 36rpx 24rpx;
 }
 /* 展开态：占满整行，不挤压同行卡片 */

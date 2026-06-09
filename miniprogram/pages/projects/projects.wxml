@@ -7,6 +7,8 @@
   <view wx:elif="{{projects.length === 0}}" class="projects__empty">还没有项目，点右下角「＋」开始</view>
 
   <view wx:else class="projects__grid">
+    <!-- 展开时点空白处收起 -->
+    <view wx:if="{{activeId}}" class="projects__backdrop" bindtap="collapse"></view>
     <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card {{activeId === item.project_id ? 'ring-item--active' : ''}}" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
       <!-- 主视觉：字母头像（项目名首字 + 项目色），三态统一 -->
       <view class="avatar" style="background:{{item.color}}">{{item.initial}}</view>

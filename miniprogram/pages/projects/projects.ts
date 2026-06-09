@@ -49,6 +49,9 @@ Page({
     this.setData({ activeId: id, activeGroups: p?.groups || [], addingId: '' });
   },
 
+  // 点空白遮罩收起展开的卡片
+  collapse() { this.setData({ activeId: '', activeGroups: [], addingId: '' }); },
+
   // ---- 项目内加任务（一键同步今日清单）----
   openAdd(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
