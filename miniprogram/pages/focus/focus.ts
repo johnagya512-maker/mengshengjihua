@@ -36,6 +36,23 @@ Page({
     this.updateCapacityTip();
   },
 
+  // 点中间数字手动输入精确时长（1~600 分钟）
+  editDuration() {
+    wx.showModal({
+      title: '设置时长',
+      editable: true,
+      placeholderText: '输入分钟数',
+      content: String(this.data.duration),
+      success: (res) => {
+        if (!res.confirm) return;
+        const n = Math.round(Number((res.content || '').trim()));
+        if (!(n > 0)) return wx.showToast({ title: '填个有效分钟数', icon: 'none' });
+        this.setData({ duration: Math.min(600, n) });
+        this.updateCapacityTip();
+      },
+    });
+  },
+
   // 把「时长 ↔ 今日可投入时间」连结显性化：这件吃掉多少额度、还剩多少
   updateCapacityTip() {
     const cap = getCachedCapacity();
