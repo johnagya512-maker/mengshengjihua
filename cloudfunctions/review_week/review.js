@@ -11,6 +11,27 @@ function weekStartMs(nowMs) {
   return monday - 8 * 3600 * 1000;
 }
 
+// 今日 0 点（东八区）时间戳
+function todayStartMs(nowMs) {
+  const d = new Date(nowMs + 8 * 3600 * 1000);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - 8 * 3600 * 1000;
+}
+
+// 东八区日期串 YYYY-MM-DD
+function cstDate(ms) {
+  return new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// 连续行动天数：从今天（或昨天）往前数，有完成记录的连续天数
+function actionStreak(doneTasks, nowMs) {
+  const days = new Set(doneTasks.filter((t) => t.finished_at).map((t) => cstDate(t.finished_at)));
+  let streak = 0;
+  let cursor = nowMs;
+  if (!days.has(cstDate(cursor))) cursor -= DAY_MS; // 今天还没做不立刻断
+  while (days.has(cstDate(cursor))) { streak += 1; cursor -= DAY_MS; }
+  return streak;
+}
+
 function round1(n) { return Math.round(n * 10) / 10; }
 
 // 本周聚合：完成分布（按项目）/ 跳过归因 / 耗时偏差
@@ -54,6 +75,32 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
   });
   const biasRatio = estSum ? round1(actSum / estSum) : 0; // >1 习惯性低估，<1 习惯性高估
 
+  // 4) 今日小结（激励向，只取当天）
+  const todayStart = todayStartMs(nowMs);
+  const todayDone = doneTasks.filter((t) => t.finished_at && t.finished_at >= todayStart);
+  const todayMinutes = todayDone.reduce((s, t) => s + (t.actual_duration || t.duration || 0), 0);
+  const todayActions = todayDone
+    .sort((a, b) => (b.finished_at || 0) - (a.finished_at || 0))
+    .slice(0, 5)
+    .map((t) => t.action || '一件事');
+  const today = {
+    done_count: todayDone.length,
+    minutes: todayMinutes,
+    actions: todayActions,
+    streak_days: actionStreak(doneTasks, nowMs),
+  };
+
+  // 5) 环比上周：完成数 / 跳过数 的差值（上周同口径=上周一~本周一前）
+  const lastWkStart = wkStart - 7 * DAY_MS;
+  const lastWkDone = doneTasks.filter((t) => t.finished_at && t.finished_at >= lastWkStart && t.finished_at < wkStart);
+  const lastWkSkip = skipLogs.filter((s) => s.created_at && s.created_at >= lastWkStart && s.created_at < wkStart);
+  const compare = {
+    last_done: lastWkDone.length,
+    done_delta: done.length - lastWkDone.length,
+    last_skip: lastWkSkip.length,
+    skip_delta: skipTotal - lastWkSkip.length,
+  };
+
   return {
     week_start: wkStart,
     done_count: done.length,
@@ -62,7 +109,9 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
     skip_counts: counts,
     skip_total: skipTotal,
     duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio: biasRatio },
+    today,
+    compare,
   };
 }
 
-module.exports = { review, weekStartMs };
+module.exports = { review, weekStartMs, todayStartMs, actionStreak };

@@ -51,3 +51,28 @@ export function reviewHeadline(doneCount: number, topName: string): string {
   if (topName) return `这周清掉 ${doneCount} 件，「${topName}」推进最多`;
   return `这周清掉 ${doneCount} 件`;
 }
+
+// ---- 今日小结文案（激励向）----
+
+// 今日小结主文案
+export function todayHeadline(doneCount: number): string {
+  if (doneCount === 0) return '今天还没有完成记录，做一件就有了';
+  if (doneCount >= 5) return `今天完成 ${doneCount} 件，状态在线`;
+  return `今天完成 ${doneCount} 件`;
+}
+
+// 今日鼓励语（不说教，按完成量轻量给）
+export function todayCheer(doneCount: number, streak: number): string {
+  if (doneCount === 0) return '哪怕只做一件，今天也就开张了';
+  if (streak >= 7) return `已经连续行动 ${streak} 天，这个势头很稳`;
+  if (streak >= 2) return `连续第 ${streak} 天了，接着保持`;
+  if (doneCount >= 5) return '今天清得很干净，给自己记一笔';
+  return '做完的事就是你的，安心收工';
+}
+
+// 环比上周解读
+export function compareInsight(doneDelta: number, skipDelta: number): string {
+  if (doneDelta > 0) return `比上周多完成 ${doneDelta} 件，节奏在往上走`;
+  if (doneDelta < 0) return `比上周少完成 ${-doneDelta} 件，这周可能更忙，别苛责自己`;
+  return '完成数和上周持平，稳着也是一种进展';
+}

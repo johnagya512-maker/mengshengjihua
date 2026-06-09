@@ -1,14 +1,58 @@
 <view class="review">
   <view class="review__head">
-    <view class="review__title">本周复盘</view>
+    <view class="review__title">复盘</view>
+  </view>
+
+  <!-- 今日 / 本周 切换 -->
+  <view class="tabs">
+    <view class="tab {{tab === 'today' ? 'tab--on' : ''}}" data-tab="today" bindtap="switchTab">今日</view>
+    <view class="tab {{tab === 'week' ? 'tab--on' : ''}}" data-tab="week" bindtap="switchTab">本周</view>
   </view>
 
   <view wx:if="{{loading}}" class="review__loading">加载中…</view>
-  <view wx:elif="{{empty}}" class="review__empty">这周还没有记录，去今日清单做一件，这里就有复盘了</view>
 
+  <!-- ===== 今日小结 ===== -->
+  <block wx:elif="{{tab === 'today'}}">
+    <view class="today__head">{{todayHeadline}}</view>
+    <view class="card today__card">
+      <view class="today__stats">
+        <view class="today__stat">
+          <view class="today__num">{{todayDone}}</view>
+          <view class="today__lab">完成</view>
+        </view>
+        <view class="today__stat">
+          <view class="today__num">{{todayMinutes}}</view>
+          <view class="today__lab">专注分钟</view>
+        </view>
+        <view class="today__stat">
+          <view class="today__num">{{todayStreak}}</view>
+          <view class="today__lab">连续天</view>
+        </view>
+      </view>
+      <view wx:if="{{todayActions.length}}" class="today__list">
+        <view wx:for="{{todayActions}}" wx:key="*this" class="today__item">✓ {{item}}</view>
+      </view>
+      <view class="today__cheer">{{todayCheer}}</view>
+    </view>
+    <view class="today__share" bindtap="shareCard">生成今日卡片 · 分享</view>
+  </block>
+
+  <!-- ===== 本周复盘 ===== -->
+  <block wx:elif="{{empty}}">
+    <view class="review__empty">这周还没有记录，去今日清单做一件，这里就有复盘了</view>
+  </block>
   <block wx:else>
-    <!-- 总览 -->
     <view class="review__headline">{{headline}}</view>
+
+    <!-- 环比上周 -->
+    <view class="card section">
+      <view class="section__title">环比上周</view>
+      <view class="compare">
+        <text class="compare__delta {{doneDelta >= 0 ? 'compare__delta--up' : 'compare__delta--down'}}">{{doneDelta >= 0 ? '+' : ''}}{{doneDelta}}</text>
+        <text class="compare__cap">件完成 vs 上周</text>
+      </view>
+      <view class="section__insight">{{compareInsight}}</view>
+    </view>
 
     <!-- 本周做了啥：按项目分布 -->
     <view wx:if="{{distribution.length}}" class="card section">
@@ -47,4 +91,7 @@
       <view class="section__insight">{{biasInsight}}</view>
     </view>
   </block>
+
+  <!-- 分享卡片用的离屏 canvas -->
+  <canvas type="2d" id="shareCanvas" class="share-canvas"></canvas>
 </view>

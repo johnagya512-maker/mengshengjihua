@@ -50,5 +50,25 @@ eq('偏差比', r.duration_bias.ratio, 1); // 130/125=1.04 → round1 = 1
 eq('空数据不报错', review({ doneTasks: [], skipLogs: [], projects: [], nowMs: NOW }).done_count, 0);
 eq('空数据 top_project null', review({ doneTasks: [], skipLogs: [], projects: [], nowMs: NOW }).top_project, null);
 
+// ---- 今日小结 + 环比 ----
+eq('环比上周完成数', r.compare.last_done, 1);      // lastWeek 那条
+eq('环比完成差值', r.compare.done_delta, 3);        // 本周4 - 上周1
+eq('环比上周跳过数', r.compare.last_skip, 1);       // lastWeek 那条跳过
+eq('今日完成数(完成都在周二，非今天周三)', r.today.done_count, 0);
+
+// 专门构造今天的完成数据
+const todayMs = NOW - 3600 * 1000; // 今天稍早
+const r2 = review({
+  doneTasks: [
+    { project_id: 'p1', action: '读了10页', duration: 30, actual_duration: 40, finished_at: todayMs },
+    { project_id: 'p2', action: '跑了3公里', duration: 20, actual_duration: 20, finished_at: todayMs },
+  ],
+  skipLogs: [], projects, nowMs: NOW,
+});
+eq('今日完成数', r2.today.done_count, 2);
+eq('今日专注分钟', r2.today.minutes, 60);            // 40+20
+eq('今日完成清单条数', r2.today.actions.length, 2);
+eq('连续行动天数(只今天)', r2.today.streak_days, 1);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

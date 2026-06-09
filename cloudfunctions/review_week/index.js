@@ -20,7 +20,7 @@ exports.main = async () => {
   try {
     const doneRes = await db.collection('tasks')
       .where({ _openid: OPENID, status: 'done', finished_at: cmd.gte(cutoff) })
-      .field({ project_id: true, duration: true, actual_duration: true, finished_at: true })
+      .field({ project_id: true, action: true, duration: true, actual_duration: true, finished_at: true })
       .limit(1000).get();
 
     const skipRes = await db.collection('skip_logs')

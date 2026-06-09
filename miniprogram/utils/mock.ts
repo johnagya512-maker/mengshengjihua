@@ -295,10 +295,21 @@ export function mockCall(name: string, data: any): Promise<any> {
       let estSum = 0, actSum = 0, biasN = 0;
       done.forEach((t) => { const est = t.duration || 0; const act = t.actual_duration || 0; if (est && act) { estSum += est; actSum += act; biasN += 1; } });
       const ratio = estSum ? Math.round((actSum / estSum) * 10) / 10 : 0;
+      // 今日小结
+      const todayStart = new Date(cstDate(Date.now()) + 'T00:00:00+08:00').getTime();
+      const todayDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= todayStart);
+      const todayMinutes = todayDone.reduce((s, t) => s + (t.actual_duration || t.duration || 0), 0);
+      const todayActions = todayDone.sort((a, b) => (b.finished_at || 0) - (a.finished_at || 0)).slice(0, 5).map((t) => t.action || '一件事');
+      const streakDays = todayDone.length ? 1 : 0; // mock 简化
+      // 环比上周
+      const lastWkStart = wkStart - 7 * 86400 * 1000;
+      const lastWkDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= lastWkStart && t.finished_at < wkStart);
       return delay({
         week_start: wkStart, done_count: done.length, distribution, top_project: distribution[0] || null,
         skip_counts: counts, skip_total: skipTotal,
         duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio },
+        today: { done_count: todayDone.length, minutes: todayMinutes, actions: todayActions, streak_days: streakDays },
+        compare: { last_done: lastWkDone.length, done_delta: done.length - lastWkDone.length, last_skip: 0, skip_delta: skipTotal },
       });
     }
 

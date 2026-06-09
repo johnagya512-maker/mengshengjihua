@@ -98,6 +98,14 @@ interface WeekReview {
   skip_counts: { 没状态: number; 等待外部: number; 临时取消: number };
   skip_total: number;
   duration_bias: { sample: number; est_minutes: number; act_minutes: number; ratio: number };
+  today: TodaySummary;
+  compare: { last_done: number; done_delta: number; last_skip: number; skip_delta: number };
+}
+interface TodaySummary {
+  done_count: number;
+  minutes: number;
+  actions: string[];
+  streak_days: number;
 }
 
 interface ParseResult {
