@@ -34,37 +34,12 @@ Page({
           const denom = (p.mode === 'count' || !p.mode) && p.goal_target ? p.goal_target : p.total_tasks;
           percent = denom ? Math.min(100, Math.round((p.completed_tasks / denom) * 100)) : 0;
         }
-        return { ...p, percent };
+        return { ...p, percent, initial: (p.name || '?').trim().charAt(0) };
       });
       this.setData({ projects, loading: false });
-      this.drawRings(projects.filter((p) => p.mode === 'count' || !p.mode));
     } catch (e) {
       this.setData({ loading: false });
     }
-  },
-
-  // Canvas 圆环绘制
-  drawRings(projects: any[]) {
-    projects.forEach((p) => {
-      const q = wx.createSelectorQuery();
-      q.select(`#ring-${p.project_id}`).fields({ node: true, size: true }).exec((res) => {
-        if (!res || !res[0]) return;
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        const dpr = wx.getWindowInfo().pixelRatio;
-        const size = res[0].width;
-        canvas.width = size * dpr;
-        canvas.height = size * dpr;
-        ctx.scale(dpr, dpr);
-        const cx = size / 2, cy = size / 2, r = size / 2 - 8;
-        ctx.clearRect(0, 0, size, size);
-        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.stroke();
-        const end = -Math.PI / 2 + (p.percent / 100) * Math.PI * 2;
-        ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, end);
-        ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.strokeStyle = p.color; ctx.stroke();
-      });
-    });
   },
 
   toggle(e: WechatMiniprogram.TouchEvent) {

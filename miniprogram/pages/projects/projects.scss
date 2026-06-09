@@ -10,14 +10,22 @@
 }
 /* 展开态：占满整行，不挤压同行卡片 */
 .ring-item--active { width: 100%; }
-.ring-item__canvas-wrap { position: relative; width: 160rpx; height: 160rpx; }
-.ring-item__canvas { width: 160rpx; height: 160rpx; }
-.ring-item__percent {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 32rpx; font-weight: 600;
+/* 主视觉：字母头像，三态统一 */
+.avatar {
+  width: 96rpx; height: 96rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 48rpx; font-weight: 700;
 }
-.ring-item__name { font-size: 30rpx; font-weight: 600; margin-top: 24rpx; text-align: center; }
-.ring-item__count { font-size: 24rpx; color: var(--color-text-sub); margin-top: 8rpx; }
+.ring-item__name { font-size: 30rpx; font-weight: 600; margin-top: 20rpx; text-align: center; }
+.ring-item__count { font-size: 24rpx; color: var(--color-text-sub); margin-top: 8rpx; text-align: center; }
+/* result 进度细条 */
+.ring-item__mini { width: 80%; height: 8rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); margin: 12rpx 0 4rpx; overflow: hidden; }
+.ring-item__mini-fill { height: 100%; border-radius: 999rpx; transition: width 0.3s; }
+.result__record {
+  margin-top: 16rpx; text-align: center; font-size: 26rpx; font-weight: 600;
+  color: var(--color-primary); padding: 12rpx 24rpx; border-radius: 12rpx;
+  background: rgba(198,123,92,0.10);
+}
 
 .dots { width: 100%; margin-top: 28rpx; border-top: 2rpx solid rgba(0,0,0,0.06); padding-top: 24rpx; }
 .dotrow { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
@@ -30,24 +38,6 @@
 .group { margin-bottom: 20rpx; }
 .group__title { font-size: 26rpx; font-weight: 600; color: var(--color-text); margin-bottom: 12rpx; }
 .dotrow--step { padding-left: 28rpx; }
-
-/* ===== streak 持续型：势头 ===== */
-.streak { width: 160rpx; height: 160rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.streak__days { font-size: 72rpx; font-weight: 700; color: var(--color-primary); line-height: 1; }
-.streak__label { font-size: 24rpx; color: var(--color-text-sub); margin-top: 12rpx; }
-
-/* ===== result 结果型：数值条 ===== */
-.result { width: 100%; padding: 8rpx 0; }
-.result__val { font-size: 44rpx; font-weight: 700; text-align: center; }
-.result__unit { font-size: 24rpx; font-weight: 400; color: var(--color-text-sub); margin-left: 4rpx; }
-.result__bar { width: 100%; height: 14rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); margin: 16rpx 0 8rpx; overflow: hidden; }
-.result__fill { height: 100%; border-radius: 999rpx; transition: width 0.3s; }
-.result__goal { font-size: 24rpx; color: var(--color-text-sub); text-align: center; }
-.result__record {
-  margin-top: 16rpx; text-align: center; font-size: 26rpx; font-weight: 600;
-  color: var(--color-primary); padding: 12rpx; border-radius: 12rpx;
-  background: rgba(122,158,126,0.10);
-}
 
 /* ===== 新建项目弹窗 ===== */
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-end; }

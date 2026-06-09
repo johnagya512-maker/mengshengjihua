@@ -8,33 +8,20 @@
 
   <view wx:else class="projects__grid">
     <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card {{activeId === item.project_id ? 'ring-item--active' : ''}}" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
-      <!-- streak 持续型：不显示进度圆环，显示势头 -->
+      <!-- 主视觉：字母头像（项目名首字 + 项目色），三态统一 -->
+      <view class="avatar" style="background:{{item.color}}">{{item.initial}}</view>
+      <view class="ring-item__name">{{item.name}}</view>
+      <!-- 进度弱化为小字；完成为 0 时去掉冷冰冰的百分比，改鼓励语 -->
       <block wx:if="{{item.mode === 'streak'}}">
-        <view class="streak">
-          <view class="streak__days">{{item.streak_days || 0}}</view>
-          <view class="streak__label">连续达标天</view>
-        </view>
-        <view class="ring-item__name">{{item.name}}</view>
-        <view class="ring-item__count">本周 {{item.week_met_days || 0}}/7 · 累计 {{item.total_done || 0}} 件</view>
+        <view class="ring-item__count">{{item.total_done ? '连续 ' + (item.streak_days || 0) + ' 天 · 本周 ' + (item.week_met_days || 0) + '/7' : '开始第一天 →'}}</view>
       </block>
-      <!-- result 结果型：数值进度条 -->
       <block wx:elif="{{item.mode === 'result'}}">
-        <view class="result">
-          <view class="result__val">{{item.current_value || 0}}<text class="result__unit">{{item.goal_unit}}</text></view>
-          <view class="result__bar"><view class="result__fill" style="width:{{item.percent}}%;background:{{item.color}}"></view></view>
-          <view class="result__goal">目标 {{item.goal_target}}{{item.goal_unit}}</view>
-        </view>
-        <view class="ring-item__name">{{item.name}}</view>
+        <view class="ring-item__count">{{item.current_value || 0}}{{item.goal_unit}}{{item.goal_target ? ' / ' + item.goal_target + item.goal_unit : ''}}</view>
+        <view wx:if="{{item.goal_target}}" class="ring-item__mini"><view class="ring-item__mini-fill" style="width:{{item.percent}}%;background:{{item.color}}"></view></view>
         <view class="result__record" data-id="{{item.project_id}}" catchtap="recordValue">＋ 记一笔</view>
       </block>
-      <!-- count 有限型（含旧数据/随手记）：沿用圆环 -->
       <block wx:else>
-        <view class="ring-item__canvas-wrap">
-          <canvas type="2d" id="ring-{{item.project_id}}" class="ring-item__canvas"></canvas>
-          <view class="ring-item__percent">{{item.percent}}%</view>
-        </view>
-        <view class="ring-item__name">{{item.name}}</view>
-        <view class="ring-item__count">{{item.completed_tasks}}{{item.goal_target ? '/' + item.goal_target : '/' + item.total_tasks}}</view>
+        <view class="ring-item__count">{{item.completed_tasks ? item.completed_tasks + (item.goal_target ? '/' + item.goal_target : '/' + item.total_tasks) + ' 件' : '开始第一件 →'}}</view>
       </block>
 
       <view wx:if="{{activeId === item.project_id}}" class="dots">
