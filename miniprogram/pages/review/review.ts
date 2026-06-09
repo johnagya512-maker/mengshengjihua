@@ -23,6 +23,7 @@ Page({
     headline: '',
     doneCount: 0,
     distribution: [] as Array<ReviewDistItem & { width: number }>,
+    timeDistribution: [] as Array<{ name: string; color: string; minutes: number; width: number; label: string }>,
     skipRows: [] as Array<{ reason: string; count: number; width: number }>,
     skipTotal: 0,
     skipInsight: '',
@@ -118,6 +119,13 @@ Page({
       const r = await api.reviewWeek();
       const maxCount = r.distribution.reduce((m, d) => Math.max(m, d.count), 0) || 1;
       const distribution = r.distribution.map((d) => ({ ...d, width: Math.round((d.count / maxCount) * 100) }));
+      // 时间花费分布：条宽按最大耗时归一；时长转「Xh Ym / Ym」可读文案
+      const maxMin = r.time_distribution.reduce((m, d) => Math.max(m, d.minutes), 0) || 1;
+      const timeDistribution = r.time_distribution.map((d) => ({
+        ...d,
+        width: Math.round((d.minutes / maxMin) * 100),
+        label: d.minutes >= 60 ? `${Math.floor(d.minutes / 60)}h${d.minutes % 60 ? ' ' + (d.minutes % 60) + 'm' : ''}` : `${d.minutes}m`,
+      }));
       const maxSkip = Math.max(r.skip_counts.没状态, r.skip_counts.等待外部, r.skip_counts.临时取消) || 1;
       const skipRows = (['没状态', '等待外部', '临时取消'] as const).map((k) => ({
         reason: REASON_LABEL[k], count: r.skip_counts[k],
@@ -138,6 +146,7 @@ Page({
         headline: reviewHeadline(r.done_count, r.top_project?.name || ''),
         doneCount: r.done_count,
         distribution,
+        timeDistribution,
         skipRows,
         skipTotal: r.skip_total,
         skipInsight: skipInsight(r.skip_counts),

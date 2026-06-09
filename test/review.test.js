@@ -40,6 +40,9 @@ eq('done_count 本周', r.done_count, 4);
 eq('top_project 读书', r.top_project.name, '读书');
 eq('top_project count', r.top_project.count, 2);
 eq('分布条数', r.distribution.length, 3);
+eq('时间分布条数', r.time_distribution.length, 3);
+eq('时间分布最高是读书', r.time_distribution[0].name, '读书'); // p1: 45+60=105 分钟最高
+eq('读书耗时合计', r.time_distribution[0].minutes, 105);
 eq('无项目归零散', r.distribution.find((d) => d.project_id === '').name, '零散');
 eq('跳过没状态计数', r.skip_counts.没状态, 2);
 eq('跳过总数', r.skip_total, 3);

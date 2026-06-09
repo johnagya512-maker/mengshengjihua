@@ -66,6 +66,18 @@
       </view>
     </view>
 
+    <!-- 时间花在哪：按项目耗时分布 -->
+    <view wx:if="{{timeDistribution.length}}" class="card section">
+      <view class="section__title">时间花在哪</view>
+      <view wx:for="{{timeDistribution}}" wx:key="project_id" class="dist">
+        <view class="dist__top">
+          <text class="dist__name">{{item.name}}</text>
+          <text class="dist__count">{{item.label}}</text>
+        </view>
+        <view class="dist__bar"><view class="dist__fill" style="width:{{item.width}}%;background:{{item.color}}"></view></view>
+      </view>
+    </view>
+
     <!-- 哪些在拖：跳过归因 -->
     <view class="card section">
       <view class="section__title">哪些在拖</view>

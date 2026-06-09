@@ -94,6 +94,7 @@ interface WeekReview {
   week_start: number;
   done_count: number;
   distribution: ReviewDistItem[];
+  time_distribution: Array<{ project_id: string; name: string; color: string; minutes: number }>;
   top_project: ReviewDistItem | null;
   skip_counts: { 没状态: number; 等待外部: number; 临时取消: number };
   skip_total: number;

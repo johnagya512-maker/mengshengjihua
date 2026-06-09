@@ -48,9 +48,11 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
   const colorOf = {};
   projects.forEach((p) => { nameOf[p.project_id] = p.name; colorOf[p.project_id] = p.color; });
   const byProject = {};
+  const minutesByProject = {};
   done.forEach((t) => {
     const pid = t.project_id || '';
     byProject[pid] = (byProject[pid] || 0) + 1;
+    minutesByProject[pid] = (minutesByProject[pid] || 0) + (t.actual_duration || t.duration || 0);
   });
   const distribution = Object.keys(byProject)
     .map((pid) => ({
@@ -60,6 +62,16 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
       count: byProject[pid],
     }))
     .sort((a, b) => b.count - a.count);
+  // 时间花费分布：按项目累计实际耗时（分钟），降序
+  const timeDistribution = Object.keys(minutesByProject)
+    .map((pid) => ({
+      project_id: pid,
+      name: nameOf[pid] || '零散',
+      color: colorOf[pid] || '#B0AAA2',
+      minutes: minutesByProject[pid],
+    }))
+    .filter((d) => d.minutes > 0)
+    .sort((a, b) => b.minutes - a.minutes);
 
   // 2) 跳过归因：哪类偏多
   const counts = { 没状态: 0, 等待外部: 0, 临时取消: 0 };
@@ -105,6 +117,7 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
     week_start: wkStart,
     done_count: done.length,
     distribution,
+    time_distribution: timeDistribution,
     top_project: distribution[0] || null,
     skip_counts: counts,
     skip_total: skipTotal,

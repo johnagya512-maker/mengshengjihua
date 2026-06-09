@@ -279,10 +279,17 @@ export function mockCall(name: string, data: any): Promise<any> {
       const nameOf: Record<string, string> = {}; const colorOf: Record<string, string> = {};
       Object.values(mem.projects).forEach((p: any) => { nameOf[p.project_id] = p.name; colorOf[p.project_id] = p.color; });
       const byProject: Record<string, number> = {};
-      done.forEach((t) => { byProject[t.project_id || ''] = (byProject[t.project_id || ''] || 0) + 1; });
+      const minByProject: Record<string, number> = {};
+      done.forEach((t) => {
+        byProject[t.project_id || ''] = (byProject[t.project_id || ''] || 0) + 1;
+        minByProject[t.project_id || ''] = (minByProject[t.project_id || ''] || 0) + (t.actual_duration || t.duration || 0);
+      });
       const distribution = Object.keys(byProject).map((pid) => ({
         project_id: pid, name: nameOf[pid] || '零散', color: colorOf[pid] || '#B0AAA2', count: byProject[pid],
       })).sort((a, b) => b.count - a.count);
+      const timeDistribution = Object.keys(minByProject).map((pid) => ({
+        project_id: pid, name: nameOf[pid] || '零散', color: colorOf[pid] || '#B0AAA2', minutes: minByProject[pid],
+      })).filter((d) => d.minutes > 0).sort((a, b) => b.minutes - a.minutes);
       // 跳过归因（mock 用 skipStats 累加的 reason 计数）
       const counts: any = { 没状态: 0, 等待外部: 0, 临时取消: 0 };
       Object.values(mem.skipStats).forEach((bucket: any) => {
@@ -305,7 +312,7 @@ export function mockCall(name: string, data: any): Promise<any> {
       const lastWkStart = wkStart - 7 * 86400 * 1000;
       const lastWkDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= lastWkStart && t.finished_at < wkStart);
       return delay({
-        week_start: wkStart, done_count: done.length, distribution, top_project: distribution[0] || null,
+        week_start: wkStart, done_count: done.length, distribution, time_distribution: timeDistribution, top_project: distribution[0] || null,
         skip_counts: counts, skip_total: skipTotal,
         duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio },
         today: { done_count: todayDone.length, minutes: todayMinutes, actions: todayActions, streak_days: streakDays },
