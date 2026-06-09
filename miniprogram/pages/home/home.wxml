@@ -19,7 +19,7 @@
           <view wx:for="{{currentGroup.steps}}" wx:key="task_id" class="substep">
             <view class="substep__dot"></view>
             <view class="substep__action">{{item.action}}</view>
-            <view class="substep__done" catchtap="completeDirect" data-id="{{item.task_id}}">✓</view>
+            <view class="substep__done" catchtap="completeSubstep" data-id="{{item.task_id}}">✓</view>
           </view>
         </view>
         <view class="taskcard__btns">
@@ -56,7 +56,7 @@
             <view wx:for="{{g.steps}}" wx:key="task_id" wx:for-item="s" class="queue__substep">
               <view class="substep__dot"></view>
               <view class="substep__action">{{s.action}}</view>
-              <view class="queue__done" catchtap="completeDirect" data-id="{{s.task_id}}">✓</view>
+              <view class="queue__done" catchtap="completeSubstep" data-id="{{s.task_id}}">✓</view>
             </view>
           </view>
           <!-- 独立任务 -->

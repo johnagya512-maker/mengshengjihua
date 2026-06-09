@@ -424,6 +424,28 @@ Page({
     wx.navigateTo({ url: `/pages/focus/focus?task_id=${id}` });
   },
 
+  // 完成大任务里的单个子任务：只划掉这一条，卡片留在原地继续显示剩余步骤，不跳走。
+  // 与 completeDirect 不同：不调用会重排顺序的 refresh，仅本地移除 + 后台静默提交。
+  completeSubstep(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id as string;
+    if (!id) return;
+    const task = this.data.tasks.find((t) => t.task_id === id);
+    if (!task) return;
+    // 本地移除该子任务并重建分组：同一大任务仍有剩余步骤则仍排原位，当前卡不跳走
+    const rest = this.data.tasks.filter((t) => t.task_id !== id);
+    this.applyTasks(rest, 0, [{ ...task, status: 'done' }, ...this.data.doneTasks]);
+    cacheTasks(rest);
+    // 后台静默提交完成 + 重算容量（不重排顺序，避免当前卡跳走）
+    (async () => {
+      try {
+        await api.completeTask({ task_id: id, actual_duration: task.duration, result: 'complete' });
+        const r = await api.compute('complete');
+        this.applyCapacity(r.daily_capacity_used, r.daily_capacity_total);
+        cacheCapacity(r.daily_capacity_used, r.daily_capacity_total);
+      } catch (err) { /* 失败下次刷新自愈 */ }
+    })();
+  },
+
   // 直接完成：不走计时，App 外做完的事一键勾掉。耗时用预估值兜底
   completeDirect(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
