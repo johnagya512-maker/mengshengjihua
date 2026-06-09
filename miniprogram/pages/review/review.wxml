@@ -3,10 +3,9 @@
     <view class="review__title">复盘</view>
   </view>
 
-  <!-- 今日 / 本周 切换 -->
+  <!-- 周期切换：tab 随使用时长渐进解锁（今日→本周→本月→今年） -->
   <view class="tabs">
-    <view class="tab {{tab === 'today' ? 'tab--on' : ''}}" data-tab="today" bindtap="switchTab">今日</view>
-    <view class="tab {{tab === 'week' ? 'tab--on' : ''}}" data-tab="week" bindtap="switchTab">本周</view>
+    <view wx:for="{{tabs}}" wx:key="key" class="tab {{tab === item.key ? 'tab--on' : ''}}" data-tab="{{item.key}}" bindtap="switchTab">{{item.label}}</view>
   </view>
 
   <view wx:if="{{loading}}" class="review__loading">加载中…</view>
@@ -37,22 +36,59 @@
     <view class="today__share" bindtap="shareCard">想留个纪念？生成今日卡片</view>
   </block>
 
-  <!-- ===== 本周复盘 ===== -->
-  <block wx:elif="{{empty}}">
-    <view class="review__empty">这周还没有记录，去今日清单做一件，这里就有复盘了</view>
-  </block>
+  <!-- ===== 区间复盘（本周 / 本月 / 今年）===== -->
   <block wx:else>
-    <view class="review__headline">{{headline}}</view>
-
-    <!-- 环比上周 -->
-    <view class="card section">
-      <view class="section__title">环比上周</view>
-      <view class="compare">
-        <text class="compare__delta {{doneDelta >= 0 ? 'compare__delta--up' : 'compare__delta--down'}}">{{doneDelta >= 0 ? '+' : ''}}{{doneDelta}}</text>
-        <text class="compare__cap">件完成 vs 上周</text>
+    <!-- 生涯累计常驻卡：所有区间视图顶部都显示，长期积累看得见 -->
+    <view class="card lifetime">
+      <view class="lifetime__head">{{lifetimeHeadline}}</view>
+      <view class="lifetime__grid">
+        <view class="lifetime__cell">
+          <view class="lifetime__num">{{lifetimeHours}}</view>
+          <view class="lifetime__lab">累计专注(时)</view>
+        </view>
+        <view class="lifetime__cell">
+          <view class="lifetime__num">{{lifetime.total_done}}</view>
+          <view class="lifetime__lab">累计完成</view>
+        </view>
+        <view class="lifetime__cell">
+          <view class="lifetime__num">{{lifetime.active_days}}</view>
+          <view class="lifetime__lab">行动天数</view>
+        </view>
+        <view class="lifetime__cell">
+          <view class="lifetime__num">{{lifetime.longest_streak}}</view>
+          <view class="lifetime__lab">最长连续</view>
+        </view>
       </view>
-      <view class="section__insight">{{compareInsight}}</view>
     </view>
+
+    <block wx:if="{{empty}}">
+      <view class="review__empty">{{emptyTip}}</view>
+    </block>
+    <block wx:else>
+      <view class="review__headline">{{headline}}</view>
+
+      <!-- 年度按月趋势：仅今年视图 -->
+      <view wx:if="{{tab === 'year' && monthlyTrend.length}}" class="card section">
+        <view class="section__title">每月完成趋势</view>
+        <view class="trend">
+          <view wx:for="{{monthlyTrend}}" wx:key="month" class="trend__col">
+            <view class="trend__bar-wrap">
+              <view class="trend__bar" style="height:{{item.height}}%"></view>
+            </view>
+            <view class="trend__lab">{{item.month}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 环比：上一周期无记录时隐藏（拿空气对比没意义） -->
+      <view wx:if="{{showCompare}}" class="card section">
+        <view class="section__title">{{compareTitle}}</view>
+        <view class="compare">
+          <text class="compare__delta {{doneDelta >= 0 ? 'compare__delta--up' : 'compare__delta--down'}}">{{doneDelta >= 0 ? '+' : ''}}{{doneDelta}}</text>
+          <text class="compare__cap">{{compareCap}}</text>
+        </view>
+        <view class="section__insight">{{compareInsight}}</view>
+      </view>
 
     <!-- 本周做了啥：按项目分布 -->
     <view wx:if="{{distribution.length}}" class="card section">
@@ -93,15 +129,16 @@
       <view class="section__insight">{{skipInsight}}</view>
     </view>
 
-    <!-- 耗时认知：实际 vs 预估 -->
-    <view class="card section">
-      <view class="section__title">耗时认知</view>
-      <view wx:if="{{biasSample}}" class="bias">
-        <view class="bias__num">×{{biasRatio}}</view>
-        <view class="bias__cap">实际 / 预估（{{biasSample}} 件样本）</view>
+      <!-- 耗时认知：实际 vs 预估 -->
+      <view class="card section">
+        <view class="section__title">耗时认知</view>
+        <view wx:if="{{biasSample}}" class="bias">
+          <view class="bias__num">×{{biasRatio}}</view>
+          <view class="bias__cap">实际 / 预估（{{biasSample}} 件样本）</view>
+        </view>
+        <view class="section__insight">{{biasInsight}}</view>
       </view>
-      <view class="section__insight">{{biasInsight}}</view>
-    </view>
+    </block>
   </block>
 
   <!-- 分享卡片用的离屏 canvas -->

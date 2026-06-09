@@ -173,9 +173,24 @@ Page({
             ...(result === 'skip' ? { skip_reason: '临时取消' as SkipReason } : {}),
           });
           await this.refresh('complete');
+          if (result === 'complete') this.maybeLearn(); // 中断恢复确认完成后也触发学习
         } catch (e) { /* 网络异常下次再问 */ }
         clearActiveTask();
       },
+    });
+  },
+
+  // 隐形学习触发（节流）：完成任务后调用，但同一天只真正学一次。
+  // 学习是纯数据库+数学（不调 AI，几乎零成本），节流只为避免一天内重复计算。
+  // 失败静默：learnProfile 本身 silent，这里再兜一层，绝不打扰用户。
+  maybeLearn() {
+    const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    const last = wx.getStorageSync('last_learn_day') || '';
+    if (last === today) return; // 当天已学过
+    wx.setStorageSync('last_learn_day', today);
+    api.learnProfile().catch(() => {
+      // 学习失败：回退标记，下次完成任务再试，避免今天彻底不学
+      if (wx.getStorageSync('last_learn_day') === today) wx.removeStorageSync('last_learn_day');
     });
   },
 
@@ -244,8 +259,9 @@ Page({
   quickAdd(text: string) {
     const action = text.slice(0, 100);
     // 1) 立即显示，关面板 —— 不 await 任何网络。无项目（项目由用户自建）
+    const localId = `local_${Date.now()}`;
     const optimistic = {
-      task_id: `local_${Date.now()}`, project_id: '', project_tag: '',
+      task_id: localId, project_id: '', project_tag: '',
       action, duration: 30, vision_statement: '',
       type: 'normal', status: 'pending', scheduled_time: '',
     } as Task;
@@ -257,7 +273,15 @@ Page({
     // 2) 后台保存 + 重排；成功则用真实排期覆盖，失败保留本地任务
     (async () => {
       try {
-        await api.saveTask({ action, duration: 30, vision_statement: '' });
+        const saved = await api.saveTask({ action, duration: 30, vision_statement: '' });
+        // 拿到真实 task_id 后立即替换乐观 local id：即便随后 compute 失败，
+        // 列表里也是真实 id，用户对它的完成/删除不会因 local id 在后端找不到而丢失。
+        if (saved && saved.task_id) {
+          const swapped = this.data.tasks.map((t) =>
+            t.task_id === localId ? { ...t, task_id: saved.task_id, project_id: saved.project_id || '' } : t);
+          this.applyTasks(swapped);
+          cacheTasks(swapped);
+        }
         const r = await api.compute('add_task');
         const all = [...r.ordered_tasks, ...(r.overflow_tasks || [])];
         this.applyTasks(all, r.done_today);
@@ -437,6 +461,7 @@ Page({
         const r = await api.compute('complete');
         this.applyCapacity(r.daily_capacity_used, r.daily_capacity_total);
         cacheCapacity(r.daily_capacity_used, r.daily_capacity_total);
+        this.maybeLearn(); // 完成子任务后触发隐形学习（当天只学一次）
       } catch (err) { /* 失败下次刷新自愈 */ }
     })();
   },
@@ -456,6 +481,7 @@ Page({
       try {
         await api.completeTask({ task_id: id, actual_duration: task.duration, result: 'complete' });
         await this.refresh('complete');
+        this.maybeLearn(); // 完成后触发隐形学习（当天只学一次）
       } catch (err) { /* 失败下次刷新自愈 */ }
     })();
   },

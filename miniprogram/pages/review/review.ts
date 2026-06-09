@@ -1,7 +1,7 @@
 // pages/review/review.ts — 本周复盘：把已有数据呈现出来（方向 v1.1 §4）
 import { api } from '../../utils/api';
 import { isLoggedIn } from '../../utils/auth';
-import { reviewHeadline, skipInsight, biasInsight, todayHeadline, todayCheer, compareInsight } from '../../utils/coach';
+import { reviewHeadline, skipInsight, biasInsight, todayHeadline, todayCheer, compareInsight, lifetimeHeadline } from '../../utils/coach';
 
 const REASON_LABEL: Record<string, string> = {
   没状态: '没状态', 等待外部: '等待外部', 临时取消: '临时取消',
@@ -11,16 +11,23 @@ Page({
   data: {
     loading: true,
     empty: false,
-    tab: 'today' as 'today' | 'week',  // 默认今日小结
-    // 今日小结
+    tab: 'today' as 'today' | 'week' | 'month' | 'year',
+    // 渐进解锁的 tab：默认只有今日，按首次使用天数在 load() 里追加（3天解锁本周/14天本月/60天今年）
+    tabs: [{ key: 'today', label: '今日' }] as Array<{ key: string; label: string }>,
+    emptyTip: '这段时间还没有记录，去今日清单做一件，这里就有复盘了',
     todayHeadline: '',
     todayCheer: '',
     todayDone: 0,
     todayMinutes: 0,
     todayActions: [] as string[],
     todayStreak: 0,
-    // 周复盘
+    lifetime: { total_done: 0, total_minutes: 0, active_days: 0, longest_streak: 0, current_streak: 0, first_day: '' } as LifetimeStats,
+    lifetimeHeadline: '',
+    lifetimeHours: 0,
+    monthlyTrend: [] as Array<{ month: number; count: number; minutes: number; height: number }>,
     headline: '',
+    compareTitle: '环比上周',
+    compareCap: '件完成 vs 上周',
     doneCount: 0,
     distribution: [] as Array<ReviewDistItem & { width: number }>,
     timeDistribution: [] as Array<{ name: string; color: string; minutes: number; width: number; label: string }>,
@@ -32,6 +39,7 @@ Page({
     biasSample: 0,
     compareInsight: '',
     doneDelta: 0,
+    showCompare: false,  // 上一周期无数据时隐藏环比卡（拿空气对比没意义）
   },
 
   onShow() {
@@ -40,7 +48,9 @@ Page({
   },
 
   switchTab(e: WechatMiniprogram.TouchEvent) {
-    this.setData({ tab: e.currentTarget.dataset.tab as 'today' | 'week' });
+    const tab = e.currentTarget.dataset.tab as 'today' | 'week' | 'month' | 'year';
+    this.setData({ tab, loading: true });
+    this.load();
   },
 
   // 生成今日小结分享卡片：canvas 画竖图 → 存相册
@@ -116,7 +126,9 @@ Page({
 
   async load() {
     try {
-      const r = await api.reviewWeek();
+      // tab=today 时后端取数退回 week（今日数据所有周期都返回）；区间视图按 tab 取对应周期
+      const period: ReviewPeriod = this.data.tab === 'today' ? 'week' : (this.data.tab as ReviewPeriod);
+      const r = await api.reviewWeek(period);
       const maxCount = r.distribution.reduce((m, d) => Math.max(m, d.count), 0) || 1;
       const distribution = r.distribution.map((d) => ({ ...d, width: Math.round((d.count / maxCount) * 100) }));
       // 时间花费分布：条宽按最大耗时归一；时长转「Xh Ym / Ym」可读文案
@@ -132,9 +144,37 @@ Page({
         width: Math.round((r.skip_counts[k] / maxSkip) * 100),
       }));
       const t = r.today;
+      // 周期文案：empty 提示、环比标题/副标题、headline 用词
+      const periodWord = period === 'month' ? '这个月' : period === 'year' ? '今年' : '本周';
+      const prevWord = period === 'month' ? '上月' : period === 'year' ? '去年' : '上周';
+      // 年度月度趋势：按最大件数归一成柱高（%）
+      const trend = r.monthly_trend || [];
+      const maxTrend = trend.reduce((m, x) => Math.max(m, x.count), 0) || 1;
+      const monthlyTrend = trend.map((x) => ({ ...x, height: Math.round((x.count / maxTrend) * 100) }));
+      const lt = r.lifetime;
+      // 渐进解锁：按首次使用至今的天数，逐步放出更长周期的 tab
+      // first_day 为空（没有任何完成记录）→ 视为第 0 天，只显示今日
+      const ALL_TABS = [
+        { key: 'today', label: '今日', unlockDay: 0 },
+        { key: 'week', label: '本周', unlockDay: 3 },
+        { key: 'month', label: '本月', unlockDay: 14 },
+        { key: 'year', label: '今年', unlockDay: 60 },
+      ];
+      let usedDays = 0;
+      if (lt.first_day) {
+        const firstMs = new Date(lt.first_day + 'T00:00:00+08:00').getTime();
+        usedDays = Math.floor((Date.now() - firstMs) / 86400000);
+      }
+      const tabs = ALL_TABS.filter((tt) => usedDays >= tt.unlockDay).map((tt) => ({ key: tt.key, label: tt.label }));
+      // 当前 tab 若已超出解锁范围（理论上不会，兜底），回落到今日
+      const tabKeys = tabs.map((tt) => tt.key);
+      const safeTab = tabKeys.includes(this.data.tab) ? this.data.tab : 'today';
       this.setData({
         loading: false,
-        empty: r.done_count === 0 && r.skip_total === 0 && t.done_count === 0,
+        tabs,
+        tab: safeTab,
+        empty: r.done_count === 0 && r.skip_total === 0,
+        emptyTip: `${periodWord}还没有记录，去今日清单做一件，这里就有复盘了`,
         // 今日
         todayHeadline: todayHeadline(t.done_count),
         todayCheer: todayCheer(t.done_count, t.streak_days, Date.now()),
@@ -142,8 +182,15 @@ Page({
         todayMinutes: t.minutes,
         todayActions: t.actions,
         todayStreak: t.streak_days,
-        // 周
-        headline: reviewHeadline(r.done_count, r.top_project?.name || ''),
+        // 生涯累计常驻卡
+        lifetime: lt,
+        lifetimeHeadline: lifetimeHeadline(lt.total_done, lt.active_days, lt.first_day),
+        lifetimeHours: Math.round(lt.total_minutes / 60),
+        monthlyTrend,
+        // 区间
+        headline: reviewHeadline(r.done_count, r.top_project?.name || '', period),
+        compareTitle: `环比${prevWord}`,
+        compareCap: `件完成 vs ${prevWord}`,
         doneCount: r.done_count,
         distribution,
         timeDistribution,
@@ -153,8 +200,10 @@ Page({
         biasInsight: biasInsight(r.duration_bias.ratio, r.duration_bias.sample),
         biasRatio: r.duration_bias.ratio,
         biasSample: r.duration_bias.sample,
-        compareInsight: compareInsight(r.compare.done_delta, r.compare.skip_delta),
+        compareInsight: compareInsight(r.compare.done_delta, r.compare.skip_delta, period),
         doneDelta: r.compare.done_delta,
+        // 上一周期完全无记录（完成+跳过都为0）时隐藏环比：避免「环比去年 +3」这类拿空气对比
+        showCompare: r.compare.last_done > 0 || r.compare.last_skip > 0,
       });
     } catch (e) {
       this.setData({ loading: false });

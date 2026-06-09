@@ -47,10 +47,28 @@ export function biasInsight(ratio: number, sample: number): string {
 }
 
 // 本周完成总览
-export function reviewHeadline(doneCount: number, topName: string): string {
-  if (doneCount === 0) return '这周还没完成记录，做一件就有了';
-  if (topName) return `这周清掉 ${doneCount} 件，「${topName}」推进最多`;
-  return `这周清掉 ${doneCount} 件`;
+export function reviewHeadline(doneCount: number, topName: string, period: string = 'week'): string {
+  const word = period === 'month' ? '这个月' : period === 'year' ? '今年' : period === 'lifetime' ? '至今' : '这周';
+  if (doneCount === 0) return `${word}还没完成记录，做一件就有了`;
+  if (topName) return `${word}清掉 ${doneCount} 件，「${topName}」推进最多`;
+  return `${word}清掉 ${doneCount} 件`;
+}
+
+// 生涯累计主文案：陈述长期积累，不喊口号（契合「闷声」）
+export function lifetimeHeadline(totalDone: number, activeDays: number, firstDay: string): string {
+  if (totalDone === 0) return '还没有记录。今天开始，往后都算数';
+  if (firstDay) return `从 ${firstDay} 到现在，你专注做完了 ${totalDone} 件`;
+  return `至今专注做完了 ${totalDone} 件`;
+}
+
+// 把分钟数转成可读时长：Xh Ym / Ym
+export function readableMinutes(min: number): string {
+  if (min >= 60) {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+  }
+  return `${min}m`;
 }
 
 // ---- 今日小结文案（激励向）----
@@ -72,9 +90,10 @@ export function todayCheer(doneCount: number, streak: number, seed = 0): string 
   return pickCheer(CHEER_DEFAULT, seed);
 }
 
-// 环比上周解读
-export function compareInsight(doneDelta: number, skipDelta: number): string {
-  if (doneDelta > 0) return `比上周多完成 ${doneDelta} 件，节奏在往上走`;
-  if (doneDelta < 0) return `比上周少完成 ${-doneDelta} 件，这周可能更忙，别苛责自己`;
-  return '完成数和上周持平，稳着也是一种进展';
+// 环比上一周期解读
+export function compareInsight(doneDelta: number, skipDelta: number, period: string = 'week'): string {
+  const prev = period === 'month' ? '上月' : period === 'year' ? '去年' : '上周';
+  if (doneDelta > 0) return `比${prev}多完成 ${doneDelta} 件，节奏在往上走`;
+  if (doneDelta < 0) return `比${prev}少完成 ${-doneDelta} 件，那阵可能更忙，别苛责自己`;
+  return `完成数和${prev}持平，稳着也是一种进展`;
 }

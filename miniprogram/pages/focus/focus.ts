@@ -186,8 +186,20 @@ Page({
       const rest = getCachedTasks().filter((t) => !doneIds.includes(t.task_id));
       cacheTasks(rest);
       await api.compute(result); // 弹性重排（服务端，跨天或下次主动刷新时生效）
+      if (result === 'complete') this.maybeLearn(); // 完成后触发隐形学习（当天只学一次）
     } catch (e) { /* 已在分支内兜底 */ }
     wx.navigateBack();
+  },
+
+  // 隐形学习触发（节流）：与 home.maybeLearn 共用 last_learn_day，当天只学一次。
+  // 纯数据库+数学，不调 AI；失败静默并回退标记，下次再试。
+  maybeLearn() {
+    const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    if (wx.getStorageSync('last_learn_day') === today) return;
+    wx.setStorageSync('last_learn_day', today);
+    api.learnProfile().catch(() => {
+      if (wx.getStorageSync('last_learn_day') === today) wx.removeStorageSync('last_learn_day');
+    });
   },
 
   onUnload() { if (this.timer) clearInterval(this.timer); },

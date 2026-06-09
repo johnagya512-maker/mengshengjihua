@@ -34,8 +34,13 @@ exports.main = async () => {
     });
 
     // 冷启动或无可学增量：只记 meta，不动种子参数（护栏1）
+    const exist = await db.collection('profiles').where({ _openid: OPENID })
+      .field({ _id: true, ideal_work_hours_manual: true }).get();
+    // 护栏：用户手动设过每日容量，学习不再覆盖（尊重明确意愿，规则2只在未手设时生效）
+    if (exist.data[0] && exist.data[0].ideal_work_hours_manual) {
+      delete updates.ideal_work_hours;
+    }
     const patch = { ...updates, learning_meta, learned_at: nowMs };
-    const exist = await db.collection('profiles').where({ _openid: OPENID }).field({ _id: true }).get();
     if (exist.data.length === 0) {
       // 理论上登录已建 profile；兜底，避免学习先于初始化时丢数据
       await db.collection('profiles').add({ data: { _openid: OPENID, ...patch } });

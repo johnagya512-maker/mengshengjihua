@@ -16,6 +16,8 @@ exports.main = async (event) => {
     const h = Number(event.ideal_work_hours);
     if (!(h >= 1 && h <= 12)) return fail(422, '每日时长需在 1~12 小时之间');
     patch.ideal_work_hours = h;
+    // 标记为用户手动设置：隐形学习此后不再覆盖容量，尊重用户明确意愿
+    patch.ideal_work_hours_manual = true;
   }
   if (Object.keys(patch).length === 0) return fail(422, '没有可更新的字段');
 

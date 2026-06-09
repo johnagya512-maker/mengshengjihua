@@ -17,6 +17,34 @@ function todayStartMs(nowMs) {
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - 8 * 3600 * 1000;
 }
 
+// 本月 1 号 0 点（东八区）时间戳
+function monthStartMs(nowMs) {
+  const d = new Date(nowMs + 8 * 3600 * 1000);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - 8 * 3600 * 1000;
+}
+
+// 本年 1 月 1 号 0 点（东八区）时间戳
+function yearStartMs(nowMs) {
+  const d = new Date(nowMs + 8 * 3600 * 1000);
+  return Date.UTC(d.getUTCFullYear(), 0, 1) - 8 * 3600 * 1000;
+}
+
+// 上一个同长度周期的起点（用于环比）：week→上周, month→上月, year→去年
+function prevPeriodStartMs(period, curStart) {
+  const d = new Date(curStart + 8 * 3600 * 1000);
+  if (period === 'month') return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1) - 8 * 3600 * 1000;
+  if (period === 'year') return Date.UTC(d.getUTCFullYear() - 1, 0, 1) - 8 * 3600 * 1000;
+  return curStart - 7 * DAY_MS; // week
+}
+
+// 区间起点：按 period 返回当前周期起点；lifetime 返回 0（全量）
+function periodStartMs(period, nowMs) {
+  if (period === 'month') return monthStartMs(nowMs);
+  if (period === 'year') return yearStartMs(nowMs);
+  if (period === 'lifetime') return 0;
+  return weekStartMs(nowMs);
+}
+
 // 东八区日期串 YYYY-MM-DD
 function cstDate(ms) {
   return new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
@@ -34,12 +62,63 @@ function actionStreak(doneTasks, nowMs) {
 
 function round1(n) { return Math.round(n * 10) / 10; }
 
-// 本周聚合：完成分布（按项目）/ 跳过归因 / 耗时偏差
-// doneTasks: [{project_id, actual_duration, duration, finished_at}]
+// 生涯累计：从第一条完成记录算起，永不归零
+// 总完成件数 / 总专注分钟 / 累计行动天数(有完成记录的不同天数) / 最长连续天数 / 起始日
+function lifetimeStats(doneTasks, nowMs) {
+  const done = doneTasks.filter((t) => t.finished_at);
+  const totalDone = done.length;
+  const totalMinutes = done.reduce((s, t) => s + (t.actual_duration || t.duration || 0), 0);
+  const dayset = new Set(done.map((t) => cstDate(t.finished_at)));
+  const activeDays = dayset.size;
+  // 最长连续天数：把行动日排序，扫描最长连续段
+  const days = Array.from(dayset).sort();
+  let longest = 0, run = 0, prevMs = null;
+  days.forEach((ds) => {
+    const ms = new Date(ds + 'T00:00:00+08:00').getTime();
+    if (prevMs !== null && ms - prevMs === DAY_MS) run += 1;
+    else run = 1;
+    if (run > longest) longest = run;
+    prevMs = ms;
+  });
+  // 起始日：第一条完成记录的日期
+  let firstDay = '';
+  if (done.length) {
+    const minMs = done.reduce((m, t) => Math.min(m, t.finished_at), done[0].finished_at);
+    firstDay = cstDate(minMs);
+  }
+  return {
+    total_done: totalDone,
+    total_minutes: totalMinutes,
+    active_days: activeDays,
+    longest_streak: longest,
+    current_streak: actionStreak(doneTasks, nowMs),
+    first_day: firstDay,
+  };
+}
+
+// 年度按月趋势：返回 12 个月每月的完成件数与专注分钟（当年）
+function monthlyTrend(doneTasks, nowMs) {
+  const d = new Date(nowMs + 8 * 3600 * 1000);
+  const year = d.getUTCFullYear();
+  const months = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, count: 0, minutes: 0 }));
+  doneTasks.forEach((t) => {
+    if (!t.finished_at) return;
+    const dd = new Date(t.finished_at + 8 * 3600 * 1000);
+    if (dd.getUTCFullYear() !== year) return;
+    const m = dd.getUTCMonth();
+    months[m].count += 1;
+    months[m].minutes += (t.actual_duration || t.duration || 0);
+  });
+  return months;
+}
+
+// 区间聚合：完成分布（按项目）/ 跳过归因 / 耗时偏差，区间由 period 决定
+// period: 'week'(默认) | 'month' | 'year' | 'lifetime'
+// doneTasks: [{project_id, action, actual_duration, duration, finished_at}]
 // skipLogs:  [{skip_reason, created_at}]
 // projects:  [{project_id, name, color}]
-function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
-  const wkStart = weekStartMs(nowMs);
+function review({ doneTasks = [], skipLogs = [], projects = [], nowMs, period = 'week' }) {
+  const wkStart = periodStartMs(period, nowMs);
   const done = doneTasks.filter((t) => t.finished_at && t.finished_at >= wkStart);
   const skips = skipLogs.filter((s) => s.created_at && s.created_at >= wkStart);
 
@@ -102,8 +181,8 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
     streak_days: actionStreak(doneTasks, nowMs),
   };
 
-  // 5) 环比上周：完成数 / 跳过数 的差值（上周同口径=上周一~本周一前）
-  const lastWkStart = wkStart - 7 * DAY_MS;
+  // 5) 环比上一周期：完成数 / 跳过数 的差值（同口径=上一个同长度周期）
+  const lastWkStart = prevPeriodStartMs(period, wkStart);
   const lastWkDone = doneTasks.filter((t) => t.finished_at && t.finished_at >= lastWkStart && t.finished_at < wkStart);
   const lastWkSkip = skipLogs.filter((s) => s.created_at && s.created_at >= lastWkStart && s.created_at < wkStart);
   const compare = {
@@ -114,6 +193,7 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
   };
 
   return {
+    period,
     week_start: wkStart,
     done_count: done.length,
     distribution,
@@ -124,7 +204,9 @@ function review({ doneTasks = [], skipLogs = [], projects = [], nowMs }) {
     duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio: biasRatio },
     today,
     compare,
+    lifetime: lifetimeStats(doneTasks, nowMs), // 生涯累计：所有视图都带，前端常驻展示
+    monthly_trend: period === 'year' ? monthlyTrend(doneTasks, nowMs) : null, // 年度视图才算趋势
   };
 }
 
-module.exports = { review, weekStartMs, todayStartMs, actionStreak };
+module.exports = { review, weekStartMs, todayStartMs, monthStartMs, yearStartMs, actionStreak, lifetimeStats };

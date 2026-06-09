@@ -26,6 +26,13 @@ export const api = {
     return callCloud('profile_patch', p);
   },
 
+  // 隐形学习：从行为历史(完成/跳过)反推画像并静默校正。纯数据库+数学，不调 AI。
+  // 由前端在「完成任务后」触发，当天只调一次（见 home.ts maybeLearn 节流）。
+  // silent: 学习失败不该打扰用户，静默吞掉
+  learnProfile(): Promise<{ applied: string[]; learning_meta: any }> {
+    return callCloud('profile_learn', {}, { silent: true });
+  },
+
   parseTask(input_text: string, allow_split = false, force_plan = false): Promise<ParseResult> {
     return callCloud<ParseResult>('task_parse', { input_text, allow_split, force_plan }, { isAI: true });
   },
@@ -56,9 +63,9 @@ export const api = {
     return callCloud('project_list');
   },
 
-  // 本周复盘聚合（只读已有数据：完成分布 / 跳过归因 / 耗时偏差）
-  reviewWeek(): Promise<WeekReview> {
-    return callCloud('review_week');
+  // 复盘聚合（只读已有数据）。period: week(默认)/month/year/lifetime
+  reviewWeek(period: ReviewPeriod = 'week'): Promise<WeekReview> {
+    return callCloud('review_week', { period });
   },
 
   createProject(p: {

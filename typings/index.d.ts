@@ -88,13 +88,28 @@ interface SubTask {
 }
 
 // ===== v1.1 第二期：复盘 =====
+type ReviewPeriod = 'week' | 'month' | 'year' | 'lifetime';
 interface ReviewDistItem {
   project_id: string;
   name: string;
   color: string;
   count: number;
 }
+interface LifetimeStats {
+  total_done: number;
+  total_minutes: number;
+  active_days: number;
+  longest_streak: number;
+  current_streak: number;
+  first_day: string;
+}
+interface MonthlyTrendItem {
+  month: number;
+  count: number;
+  minutes: number;
+}
 interface WeekReview {
+  period: ReviewPeriod;
   week_start: number;
   done_count: number;
   distribution: ReviewDistItem[];
@@ -105,6 +120,8 @@ interface WeekReview {
   duration_bias: { sample: number; est_minutes: number; act_minutes: number; ratio: number };
   today: TodaySummary;
   compare: { last_done: number; done_delta: number; last_skip: number; skip_delta: number };
+  lifetime: LifetimeStats;
+  monthly_trend: MonthlyTrendItem[] | null;
 }
 interface TodaySummary {
   done_count: number;

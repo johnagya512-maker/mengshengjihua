@@ -145,6 +145,10 @@ export function mockCall(name: string, data: any): Promise<any> {
     case 'profile_patch':
       return delay({ success: true, ...data });
 
+    case 'profile_learn':
+      // 隐形学习 mock：纯算数无 AI，mock 下直接返回空增量即可（不影响主流程）
+      return delay({ applied: [], learning_meta: { is_cold_start: true } });
+
     case 'task_parse':
       return delay(fakeParse(data.input_text, !!data.allow_split, !!data.force_plan), 600);
 
@@ -281,9 +285,20 @@ export function mockCall(name: string, data: any): Promise<any> {
     }
 
     case 'review_week': {
-      const wkStart = weekStartMs();
+      const period = (data && data.period) || 'week';
+      const nowMs = Date.now();
+      const cstD = (ms: number) => new Date(ms + 8 * 3600 * 1000).toISOString().slice(0, 10);
+      const dayMs = 86400 * 1000;
+      // 区间起点：周/月/年/累计
+      const startOf = (pd: string): number => {
+        const d = new Date(nowMs + 8 * 3600 * 1000);
+        if (pd === 'month') return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - 8 * 3600 * 1000;
+        if (pd === 'year') return Date.UTC(d.getUTCFullYear(), 0, 1) - 8 * 3600 * 1000;
+        if (pd === 'lifetime') return 0;
+        return weekStartMs();
+      };
+      const wkStart = startOf(period);
       const done = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= wkStart);
-      const skipsInWeek = mem.tasks.filter((t) => t.status === 'skip');
       // 按项目分布
       const nameOf: Record<string, string> = {}; const colorOf: Record<string, string> = {};
       Object.values(mem.projects).forEach((p: any) => { nameOf[p.project_id] = p.name; colorOf[p.project_id] = p.color; });
@@ -312,20 +327,58 @@ export function mockCall(name: string, data: any): Promise<any> {
       done.forEach((t) => { const est = t.duration || 0; const act = t.actual_duration || 0; if (est && act) { estSum += est; actSum += act; biasN += 1; } });
       const ratio = estSum ? Math.round((actSum / estSum) * 10) / 10 : 0;
       // 今日小结
-      const todayStart = new Date(cstDate(Date.now()) + 'T00:00:00+08:00').getTime();
+      const todayStart = new Date(cstD(nowMs) + 'T00:00:00+08:00').getTime();
       const todayDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= todayStart);
       const todayMinutes = todayDone.reduce((s, t) => s + (t.actual_duration || t.duration || 0), 0);
       const todayActions = todayDone.sort((a, b) => (b.finished_at || 0) - (a.finished_at || 0)).slice(0, 5).map((t) => t.action || '一件事');
       const streakDays = todayDone.length ? 1 : 0; // mock 简化
-      // 环比上周
-      const lastWkStart = wkStart - 7 * 86400 * 1000;
-      const lastWkDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= lastWkStart && t.finished_at < wkStart);
+      // 环比上一周期
+      const prevStart = period === 'month'
+        ? (() => { const d = new Date(wkStart + 8 * 3600 * 1000); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1) - 8 * 3600 * 1000; })()
+        : period === 'year'
+          ? (() => { const d = new Date(wkStart + 8 * 3600 * 1000); return Date.UTC(d.getUTCFullYear() - 1, 0, 1) - 8 * 3600 * 1000; })()
+          : wkStart - 7 * dayMs;
+      const lastWkDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at && t.finished_at >= prevStart && t.finished_at < wkStart);
+      // 生涯累计（全量）
+      const allDone = mem.tasks.filter((t) => t.status === 'done' && t.finished_at);
+      const dayset = new Set(allDone.map((t) => cstD(t.finished_at as number)));
+      const days = Array.from(dayset).sort();
+      let longest = 0, run = 0, prevMs: number | null = null;
+      days.forEach((ds) => {
+        const ms = new Date(ds + 'T00:00:00+08:00').getTime();
+        if (prevMs !== null && ms - prevMs === dayMs) run += 1; else run = 1;
+        if (run > longest) longest = run;
+        prevMs = ms;
+      });
+      const firstDay = allDone.length ? cstD(allDone.reduce((m, t) => Math.min(m, t.finished_at as number), allDone[0].finished_at as number)) : '';
+      const lifetime = {
+        total_done: allDone.length,
+        total_minutes: allDone.reduce((s, t) => s + (t.actual_duration || t.duration || 0), 0),
+        active_days: dayset.size,
+        longest_streak: longest,
+        current_streak: streakDays,
+        first_day: firstDay,
+      };
+      // 年度按月趋势
+      let monthlyTrend: any = null;
+      if (period === 'year') {
+        const yr = new Date(nowMs + 8 * 3600 * 1000).getUTCFullYear();
+        const months = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, count: 0, minutes: 0 }));
+        allDone.forEach((t) => {
+          const dd = new Date((t.finished_at as number) + 8 * 3600 * 1000);
+          if (dd.getUTCFullYear() !== yr) return;
+          months[dd.getUTCMonth()].count += 1;
+          months[dd.getUTCMonth()].minutes += (t.actual_duration || t.duration || 0);
+        });
+        monthlyTrend = months;
+      }
       return delay({
-        week_start: wkStart, done_count: done.length, distribution, time_distribution: timeDistribution, top_project: distribution[0] || null,
+        period, week_start: wkStart, done_count: done.length, distribution, time_distribution: timeDistribution, top_project: distribution[0] || null,
         skip_counts: counts, skip_total: skipTotal,
         duration_bias: { sample: biasN, est_minutes: estSum, act_minutes: actSum, ratio },
         today: { done_count: todayDone.length, minutes: todayMinutes, actions: todayActions, streak_days: streakDays },
         compare: { last_done: lastWkDone.length, done_delta: done.length - lastWkDone.length, last_skip: 0, skip_delta: skipTotal },
+        lifetime, monthly_trend: monthlyTrend,
       });
     }
 
