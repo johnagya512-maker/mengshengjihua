@@ -55,7 +55,7 @@
         <!-- 项目内加任务：一键同步今日清单 -->
         <block wx:if="{{addingId === item.project_id}}">
           <view class="addbox" catchtap="stopPropagation">
-            <input class="addbox__input" placeholder="加一件事，自动进今日清单" value="{{addAction}}" bindinput="onAddInput" maxlength="100" confirm-type="done" bindconfirm="submitAdd" />
+            <input class="addbox__input" placeholder-class="addbox__input-ph" placeholder="加一件事，自动进今日清单" value="{{addAction}}" bindinput="onAddInput" maxlength="100" confirm-type="done" bindconfirm="submitAdd" />
             <view class="addbox__row">
               <view class="addbox__repeat">
                 <text class="addbox__repeat-label">每日重复</text>
