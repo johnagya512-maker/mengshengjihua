@@ -74,8 +74,8 @@
   background: rgba(198,123,92,0.10);
 }
 .addbox { width: 100%; box-sizing: border-box; margin-top: 20rpx; padding: 20rpx; border-radius: 16rpx; background: rgba(0,0,0,0.04); }
-.addbox__input { width: 100%; box-sizing: border-box; background: #fff; border-radius: 12rpx; padding: 18rpx 20rpx; font-size: 28rpx; }
-.addbox__input-ph { font-size: 24rpx; color: var(--color-text-sub); }
+.addbox__input { width: 100%; box-sizing: border-box; height: 80rpx; line-height: 44rpx; background: #fff; border-radius: 12rpx; padding: 18rpx 20rpx; font-size: 28rpx; }
+.addbox__input-ph { font-size: 24rpx; color: var(--color-text-sub); line-height: 44rpx; }
 .addbox__row { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
 .addbox__repeat { display: flex; align-items: center; gap: 8rpx; }
 .addbox__repeat-label { font-size: 24rpx; color: var(--color-text-sub); }
