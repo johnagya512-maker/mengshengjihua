@@ -1,34 +1,65 @@
 .focus {
-  min-height: 100vh; padding: 160rpx 60rpx;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; box-sizing: border-box;
+  padding: 140rpx 56rpx calc(60rpx + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column;
   position: relative;
 }
-.focus__confirm, .focus__finish { width: 100%; display: flex; flex-direction: column; align-items: center; }
 .focus__back {
-  position: absolute; top: 80rpx; left: 48rpx;
+  position: absolute; top: 72rpx; left: 40rpx;
   font-size: 30rpx; color: var(--color-text-sub); padding: 12rpx 8rpx;
 }
+
+/* 三段式：确认 / 完成 = 内容居中(flex:1) + 底部按钮锚定 */
+.focus__confirm, .focus__finish { flex: 1; display: flex; flex-direction: column; }
+.focus__body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.focus__foot { display: flex; flex-direction: column; align-items: center; gap: 28rpx; }
+
+.focus__label { font-size: 26rpx; color: var(--color-text-sub); letter-spacing: 4rpx; margin-bottom: 28rpx; }
+.focus__action {
+  font-size: 48rpx; font-weight: 700; text-align: center; line-height: 1.35;
+  margin-bottom: 32rpx; color: var(--color-text);
+}
 .focus__vision {
-  font-size: 32rpx; color: var(--color-primary); text-align: center; line-height: 1.6;
-  background: rgba(198,123,92,0.1); padding: 36rpx; border-radius: var(--radius-lg); margin-bottom: 40rpx;
+  font-size: 28rpx; color: var(--color-primary); text-align: center; line-height: 1.6;
+  position: relative; padding: 0 24rpx; max-width: 80%; margin-bottom: 8rpx;
 }
-.focus__action { font-size: 40rpx; font-weight: 600; text-align: center; margin-bottom: 64rpx; line-height: 1.4; }
-.focus__dur { display: flex; align-items: center; gap: 32rpx; margin-bottom: 72rpx; }
+
+/* 时长步进器 */
+.focus__dur { display: flex; align-items: center; gap: 48rpx; margin-top: 88rpx; }
 .focus__adjust {
-  width: 112rpx; height: 72rpx; line-height: 72rpx; text-align: center;
-  border-radius: 999rpx; background: var(--color-card); color: var(--color-primary); font-size: 28rpx;
-  box-shadow: var(--shadow-card);
+  width: 96rpx; height: 96rpx; line-height: 92rpx; text-align: center;
+  border-radius: 50%; background: var(--color-card); color: var(--color-primary);
+  font-size: 44rpx; box-shadow: var(--shadow-card);
 }
-.focus__durval { font-size: 44rpx; font-weight: 600; min-width: 200rpx; text-align: center; }
-.focus__go, .focus__complete { width: 100%; height: 96rpx; font-size: 32rpx; }
+.focus__adjust.is-disabled { color: var(--color-text-sub); opacity: 0.35; }
+.focus__durbox { display: flex; flex-direction: column; align-items: center; min-width: 180rpx; }
+.focus__durval { font-size: 96rpx; font-weight: 700; line-height: 1; color: var(--color-text); }
+.focus__durunit { font-size: 26rpx; color: var(--color-text-sub); margin-top: 12rpx; }
 
-.focus__running { display: flex; flex-direction: column; align-items: center; }
-.focus__timer { font-size: 140rpx; font-weight: 200; letter-spacing: 4rpx; color: var(--color-primary); }
-.focus__tip { font-size: 30rpx; color: var(--color-text-sub); margin: 40rpx 0 100rpx; text-align: center; }
-.focus__early { font-size: 28rpx; color: var(--color-text-sub); padding: 16rpx 48rpx; border-radius: 999rpx; background: var(--color-card); }
+.focus__go, .focus__complete { width: 100%; height: 100rpx; font-size: 32rpx; }
 
-.focus__done { font-size: 44rpx; font-weight: 600; margin-bottom: 80rpx; }
-.focus__skip { margin-top: 40rpx; font-size: 28rpx; color: var(--color-text-sub); }
+/* 计时阶段 */
+.focus__running { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.focus__ring {
+  width: 480rpx; height: 480rpx; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(198,123,92,0.06); border: 2rpx solid rgba(198,123,92,0.16);
+  margin-bottom: 72rpx;
+}
+.focus__timer { font-size: 130rpx; font-weight: 200; letter-spacing: 4rpx; color: var(--color-primary); line-height: 1; }
+.focus__running-tip { font-size: 28rpx; color: var(--color-text-sub); margin-top: 28rpx; padding: 0 40rpx; text-align: center; max-width: 400rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus__progress { width: 70%; height: 8rpx; border-radius: 999rpx; background: rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 56rpx; }
+.focus__progress-fill { height: 100%; background: var(--color-primary); border-radius: 999rpx; transition: width 1s linear; }
+.focus__early { font-size: 28rpx; color: var(--color-text-sub); padding: 18rpx 56rpx; border-radius: 999rpx; background: var(--color-card); box-shadow: var(--shadow-card); }
+
+/* 完成阶段 */
+.focus__done-mark {
+  width: 128rpx; height: 128rpx; line-height: 128rpx; text-align: center; border-radius: 50%;
+  background: rgba(198,123,92,0.12); color: var(--color-primary); font-size: 64rpx; margin-bottom: 40rpx;
+}
+.focus__done { font-size: 44rpx; font-weight: 600; color: var(--color-text); }
+.focus__done-sub { font-size: 28rpx; color: var(--color-text-sub); margin-top: 20rpx; text-align: center; padding: 0 40rpx; }
+.focus__skip { font-size: 28rpx; color: var(--color-text-sub); }
 
 .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center; }
 .skipbox { width: 560rpx; background: var(--color-card); border-radius: var(--radius-lg); padding: 40rpx; }

@@ -14,6 +14,7 @@ Page({
     phase: 'confirm' as 'confirm' | 'running' | 'finish',
     remainSec: 0,
     timeLabel: '00:00',
+    progress: 0,           // 计时进度百分比（已过 / 计划）
     showSkip: false,
     skipReasons: SKIP_REASONS,
   },
@@ -39,14 +40,14 @@ Page({
     const sec = this.data.duration * 60;
     const t = this.data.task!;
     setActiveTask({ task_id: t.task_id, action: t.action, started_at: Date.now(), planned_duration: this.data.duration });
-    this.setData({ phase: 'running', remainSec: sec, timeLabel: this.fmt(sec) });
+    this.setData({ phase: 'running', remainSec: sec, timeLabel: this.fmt(sec), progress: 0 });
     this.timer = setInterval(() => {
       const r = this.data.remainSec - 1;
       if (r <= 0) {
         clearInterval(this.timer);
-        this.setData({ remainSec: 0, timeLabel: '00:00', phase: 'finish' });
+        this.setData({ remainSec: 0, timeLabel: '00:00', progress: 100, phase: 'finish' });
       } else {
-        this.setData({ remainSec: r, timeLabel: this.fmt(r) });
+        this.setData({ remainSec: r, timeLabel: this.fmt(r), progress: Math.round(((sec - r) / sec) * 100) });
       }
     }, 1000);
   },
@@ -63,6 +64,8 @@ Page({
     await this.submit('complete');
   },
   openSkip() { this.setData({ showSkip: true }); },
+  closeSkip() { this.setData({ showSkip: false }); },
+  noop() {},
   async chooseSkip(e: WechatMiniprogram.TouchEvent) {
     await this.submit('skip', e.currentTarget.dataset.r as SkipReason);
   },
