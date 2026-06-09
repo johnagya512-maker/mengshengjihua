@@ -1,5 +1,6 @@
 // utils/coach.ts — 教练式问责文案（设计文档 5.3）
 // 原则：自主、支持、不评判。完成给正反馈；提醒配「帮你解决」的姿态；跳过按归因接话。
+import { CHEER_START, CHEER_STREAK_LONG, CHEER_STREAK_SHORT, CHEER_PRODUCTIVE, CHEER_DEFAULT, pickCheer } from './coach-quotes';
 
 // 完成一件后的回响（按今日进度选，越接近清空越鼓励）
 export function completeEcho(doneToday: number, remain: number): string {
@@ -61,13 +62,14 @@ export function todayHeadline(doneCount: number): string {
   return `今天完成 ${doneCount} 件`;
 }
 
-// 今日鼓励语（不说教，按完成量轻量给）
-export function todayCheer(doneCount: number, streak: number): string {
-  if (doneCount === 0) return '哪怕只做一件，今天也就开张了';
-  if (streak >= 7) return `已经连续行动 ${streak} 天，这个势头很稳`;
-  if (streak >= 2) return `连续第 ${streak} 天了，接着保持`;
-  if (doneCount >= 5) return '今天清得很干净，给自己记一笔';
-  return '做完的事就是你的，安心收工';
+// 今日鼓励语（不说教，按状态选档后随机轮换；seed 由调用方传，同状态每次也不重样）
+// 古语为主、偶尔大白话，基调：闷声、向内、不打鸡血。文案库见 coach-quotes.ts
+export function todayCheer(doneCount: number, streak: number, seed = 0): string {
+  if (doneCount === 0) return pickCheer(CHEER_START, seed);
+  if (streak >= 7) return pickCheer(CHEER_STREAK_LONG, seed);
+  if (streak >= 2) return pickCheer(CHEER_STREAK_SHORT, seed);
+  if (doneCount >= 5) return pickCheer(CHEER_PRODUCTIVE, seed);
+  return pickCheer(CHEER_DEFAULT, seed);
 }
 
 // 环比上周解读

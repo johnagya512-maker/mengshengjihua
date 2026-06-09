@@ -129,7 +129,7 @@ Page({
         empty: r.done_count === 0 && r.skip_total === 0 && t.done_count === 0,
         // 今日
         todayHeadline: todayHeadline(t.done_count),
-        todayCheer: todayCheer(t.done_count, t.streak_days),
+        todayCheer: todayCheer(t.done_count, t.streak_days, Date.now()),
         todayDone: t.done_count,
         todayMinutes: t.minutes,
         todayActions: t.actions,
