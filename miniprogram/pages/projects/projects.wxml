@@ -7,7 +7,7 @@
   <view wx:elif="{{projects.length === 0}}" class="projects__empty">还没有项目，点右下角「＋」开始</view>
 
   <view wx:else class="projects__grid">
-    <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
+    <view wx:for="{{projects}}" wx:key="project_id" class="ring-item card {{activeId === item.project_id ? 'ring-item--active' : ''}}" data-id="{{item.project_id}}" bindtap="toggle" bindlongpress="confirmDelete">
       <!-- streak 持续型：不显示进度圆环，显示势头 -->
       <block wx:if="{{item.mode === 'streak'}}">
         <view class="streak">
