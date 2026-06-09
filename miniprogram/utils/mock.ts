@@ -31,10 +31,14 @@ function fakeParse(text: string, allowSplit = false, forcePlan = false) {
   // 数量型：含「N 篇/个/次/章/集/章节」→ 按数量拆成 N 个独立单元
   const numMatch = t.match(/([0-9一二两三四五六七八九十]+)\s*(篇|个|条|次|章|集|份|节)/);
   const cnMap: Record<string, number> = { 一: 1, 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-  const n = numMatch ? (Number(numMatch[1]) || cnMap[numMatch[1]] || 0) : 0;
-  if (n >= 2 && n <= 5) {
-    const unit = numMatch![2];
-    const thing = t.replace(numMatch![0], '').replace(/^(发布|写|做|完成|发)/, '') || goal;
+  let n = numMatch ? (Number(numMatch[1]) || cnMap[numMatch[1]] || 0) : 0;
+  let unit = numMatch ? numMatch[2] : '个';
+  // 模糊复数：几个/一些/多个/好几 → 估 3
+  const vagueMatch = t.match(/(几|一些|多个|好几)\s*(个|篇|条|次|章|集|份|节)?/);
+  if (!n && vagueMatch) { n = 3; unit = vagueMatch[2] || '个'; }
+  if (n >= 2 && n <= 8) {
+    const thing = (numMatch ? t.replace(numMatch[0], '') : t.replace(vagueMatch![0], ''))
+      .replace(/^(发布|写|做|完成|发|剪|剪辑)/, '') || goal;
     return {
       is_big_task: true, action: goal, duration: nearestDurMock(n * 30), project_tag: tag,
       vision_statement: '一件一件来，做完就是赚到', is_new_project: !mem.projects[tag],
