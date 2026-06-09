@@ -92,7 +92,7 @@
   <view wx:if="{{showInput}}" class="mask" bindtap="closeInput">
     <view class="panel" catchtap="noop">
       <block wx:if="{{!parseCard}}">
-        <textarea class="panel__input" placeholder="此刻在想什么？写下来交给 AI"
+        <textarea class="panel__input" placeholder="{{allowSplit ? '此刻想做的大事？写下来，交给 AI 拆成几步' : '此刻想做什么？写下来，快速记一条'}}"
                   value="{{inputText}}" bindinput="onInput" maxlength="500" auto-height focus />
         <view class="panel__split">
           <text class="panel__split-label">大事帮我拆成几步</text>

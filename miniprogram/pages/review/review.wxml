@@ -34,7 +34,7 @@
       </view>
       <view class="today__cheer">{{todayCheer}}</view>
     </view>
-    <view class="today__share" bindtap="shareCard">生成今日卡片 · 分享</view>
+    <view class="today__share" bindtap="shareCard">想留个纪念？生成今日卡片</view>
   </block>
 
   <!-- ===== 本周复盘 ===== -->
