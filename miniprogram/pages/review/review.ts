@@ -83,24 +83,39 @@ Page({
       ctx.fillText(this.data.todayCheer, W / 2, H - 90);
       ctx.fillStyle = '#C67B5C'; ctx.font = '600 26px sans-serif';
       ctx.fillText('闷声计划', W / 2, H - 45);
-      // 导出
+      // 导出图片 → 弹微信分享菜单（可直接发好友/存图；朋友圈受微信限制需存图后手动发）
       wx.canvasToTempFilePath({
         canvas,
         success: (r) => {
-          wx.saveImageToPhotosAlbum({
-            filePath: r.tempFilePath,
-            success: () => wx.showToast({ title: '已存到相册', icon: 'success' }),
-            fail: (err) => {
-              if (String(err.errMsg).includes('auth')) {
-                wx.showModal({ title: '需要相册权限', content: '请在设置里允许保存到相册', showCancel: false });
-              } else {
-                wx.showToast({ title: '保存取消', icon: 'none' });
-              }
-            },
-          });
+          const path = r.tempFilePath;
+          if (wx.showShareImageMenu) {
+            wx.showShareImageMenu({
+              path,
+              fail: (err) => {
+                // 用户取消不提示；其他失败降级为存相册
+                if (String(err.errMsg).includes('cancel')) return;
+                this.saveToAlbum(path);
+              },
+            });
+          } else {
+            this.saveToAlbum(path); // 旧基础库降级
+          }
         },
         fail: () => wx.showToast({ title: '生成失败', icon: 'none' }),
       });
+    });
+  },
+
+  // 降级：保存到相册
+  saveToAlbum(filePath: string) {
+    wx.saveImageToPhotosAlbum({
+      filePath,
+      success: () => wx.showToast({ title: '已存到相册，去分享吧', icon: 'none' }),
+      fail: (err) => {
+        if (String(err.errMsg).includes('auth')) {
+          wx.showModal({ title: '需要相册权限', content: '请在设置里允许保存到相册', showCancel: false });
+        }
+      },
     });
   },
 
