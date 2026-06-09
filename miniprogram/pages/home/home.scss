@@ -1,4 +1,4 @@
-.home { min-height: 100vh; padding: 120rpx 40rpx 200rpx; box-sizing: border-box; }
+.home { min-height: 100vh; padding: 120rpx 40rpx; padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 
 .capsule {
   background: linear-gradient(135deg, rgba(198,123,92,0.16), rgba(107,123,60,0.14));
@@ -123,7 +123,7 @@
 .done__del:active { background: rgba(0,0,0,0.06); color: var(--color-text); }
 
 .bigbtn {
-  position: fixed; right: 48rpx; bottom: 120rpx; width: 112rpx; height: 112rpx;
+  position: fixed; right: 48rpx; bottom: calc(140rpx + env(safe-area-inset-bottom)); width: 112rpx; height: 112rpx;
   border-radius: 50%; background: var(--color-primary); color: #fff;
   font-size: 64rpx; display: flex; align-items: center; justify-content: center;
   box-shadow: 0 12rpx 32rpx rgba(198,123,92,0.42); z-index: 10;
@@ -131,8 +131,8 @@
 }
 .bigbtn:active { transform: scale(0.92); box-shadow: 0 6rpx 18rpx rgba(198,123,92,0.5); }
 
-.mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: flex-end; }
-.panel { width: 100%; background: var(--color-card); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx 60rpx; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000; display: flex; align-items: flex-end; }
+.panel { width: 100%; background: var(--color-card); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx; padding-bottom: calc(160rpx + env(safe-area-inset-bottom)); }
 .panel__input { width: 100%; min-height: 160rpx; font-size: 32rpx; line-height: 1.5; }
 .panel__row { display: flex; align-items: center; gap: 24rpx; margin-top: 32rpx; }
 .panel__split { display: flex; align-items: center; justify-content: space-between; margin-top: 24rpx; }
@@ -168,7 +168,7 @@
 .dialog__yes { flex: 1; }
 
 /* 每日可投入时长调节弹窗（底部抽屉） */
-.caphours { width: 100%; background: var(--color-card); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.caphours { width: 100%; background: var(--color-card); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx calc(160rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .caphours__title { font-size: 34rpx; font-weight: 600; text-align: center; }
 .caphours__hint { font-size: 24rpx; color: var(--color-text-sub); text-align: center; margin: 16rpx 0 32rpx; line-height: 1.5; }
 .caphours__inputrow { display: flex; align-items: baseline; justify-content: center; gap: 16rpx; margin-bottom: 28rpx; }

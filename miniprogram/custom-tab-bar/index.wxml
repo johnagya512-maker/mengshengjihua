@@ -1,0 +1,15 @@
+<!-- custom-tab-bar/index.wxml — 自绘底部导航(纯文字) -->
+<view class="tabbar">
+  <view
+    wx:for="{{list}}"
+    wx:key="text"
+    class="tabbar__item"
+    data-index="{{index}}"
+    bindtap="switchTab"
+  >
+    <text
+      class="tabbar__text"
+      style="color: {{selected === index ? selectedColor : color}}; font-weight: {{selected === index ? 600 : 400}}"
+    >{{item.text}}</text>
+  </view>
+</view>

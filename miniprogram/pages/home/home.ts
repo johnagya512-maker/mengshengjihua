@@ -48,6 +48,10 @@ Page({
   },
 
   onShow() {
+    // 自绘 tabBar：高亮当前页（今日=0）
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
     this.syncOffline();
     this.checkInterrupted();
     // 日期守卫：同一天内返回（如从专注页退回）只用缓存渲染，保留当前顺序与用户选择，
@@ -219,9 +223,11 @@ Page({
       await api.patchProfile({ ideal_work_hours: h });
       // 改完立即重排，容量条按新额度刷新
       const r = await api.compute('add_task');
-      this.applyTasks(r.ordered_tasks);
+      // 合并溢出：调小额度可能让原本排得下的任务溢出，不能让它们从界面消失
+      const all = [...r.ordered_tasks, ...(r.overflow_tasks || [])];
+      this.applyTasks(all);
       this.applyCapacity(r.daily_capacity_used, r.daily_capacity_total);
-      cacheTasks(r.ordered_tasks);
+      cacheTasks(all);
       cacheCapacity(r.daily_capacity_used, r.daily_capacity_total);
       wx.showToast({ title: '已更新今日额度', icon: 'none', duration: 1200 });
     } catch (err) { /* 提示已由 request 层弹出 */ }
@@ -346,9 +352,12 @@ Page({
       if (r.overflow_tasks && r.overflow_tasks.length > 0) {
         this.setData({ overflowTask: r.overflow_tasks[0] });
       }
-      this.applyTasks(r.ordered_tasks);
+      // 合并溢出任务一起显示：容量是柔性提示，不能让超量的拆解子任务凭空消失
+      // （拆解任务总时长大、最易触发溢出，漏掉 overflow 会表现为「拆解了却没进今日」）
+      const all = [...r.ordered_tasks, ...(r.overflow_tasks || [])];
+      this.applyTasks(all);
       this.applyCapacity(r.daily_capacity_used, r.daily_capacity_total);
-      cacheTasks(r.ordered_tasks);
+      cacheTasks(all);
       cacheCapacity(r.daily_capacity_used, r.daily_capacity_total);
     } catch (e) { /* 提示已由 request 层弹出 */ }
   },

@@ -1,4 +1,4 @@
-.projects { min-height: 100vh; padding: 184rpx 40rpx 160rpx; box-sizing: border-box; }
+.projects { min-height: 100vh; padding: 184rpx 40rpx; padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .projects__head { display: flex; align-items: center; margin-bottom: 40rpx; }
 .projects__title { font-size: 48rpx; font-weight: 600; }
 .projects__loading, .projects__empty { text-align: center; color: var(--color-text-sub); font-size: 28rpx; padding-top: 120rpx; }
@@ -7,7 +7,7 @@
 .projects__backdrop { position: fixed; inset: 0; z-index: 1; }
 
 .ring-item {
-  width: calc(50% - 14rpx); box-sizing: border-box;
+  width: calc(50% - 20rpx); box-sizing: border-box;
   position: relative; z-index: 2;
   display: flex; flex-direction: column; align-items: center; padding: 36rpx 24rpx;
 }
@@ -56,8 +56,8 @@
 .dotrow--step { padding-left: 28rpx; }
 
 /* ===== 新建项目弹窗 ===== */
-.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-end; }
-.modal { width: 100%; background: var(--color-bg, #fff); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; align-items: flex-end; }
+.modal { width: 100%; background: var(--color-bg, #fff); border-radius: 32rpx 32rpx 0 0; padding: 48rpx 40rpx calc(160rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .modal__title { font-size: 36rpx; font-weight: 600; margin-bottom: 32rpx; }
 .modal__input { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.04); border-radius: 16rpx; height: 92rpx; line-height: 92rpx; padding: 0 28rpx; font-size: 30rpx; margin-bottom: 20rpx; }
 .modal__input-ph { font-size: 28rpx; color: #B0A892; }
@@ -91,11 +91,11 @@
 
 /* ===== 右下角新建悬浮按钮 ===== */
 .fab {
-  position: fixed; right: 48rpx; bottom: calc(48rpx + env(safe-area-inset-bottom));
+  position: fixed; right: 48rpx; bottom: calc(140rpx + env(safe-area-inset-bottom));
   width: 104rpx; height: 104rpx; border-radius: 50%;
   background: var(--color-primary); color: #fff; font-size: 56rpx; font-weight: 300;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 12rpx 32rpx rgba(198,123,92,0.4); z-index: 50;
+  box-shadow: 0 12rpx 32rpx rgba(198,123,92,0.4); z-index: 110;
 }
 .fab:active { transform: scale(0.92); opacity: 0.9; }
 

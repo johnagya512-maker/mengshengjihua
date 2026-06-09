@@ -20,7 +20,13 @@ Page({
     addRepeat: false,                  // 是否每日重复
   },
 
-  onShow() { this.load(); },
+  onShow() {
+    // 自绘 tabBar：高亮当前页（项目=1）
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 1 });
+    }
+    this.load();
+  },
 
   async load() {
     try {

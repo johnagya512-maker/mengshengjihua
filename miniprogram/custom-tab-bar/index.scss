@@ -1,0 +1,32 @@
+/* custom-tab-bar/index.scss — 自绘底部导航样式 */
+/* 背景用沙米底色，与全局页面一致，彻底解决真机白底问题 */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #F5F0E1;
+  border-top: 2rpx solid #DDD3BE;       /* 间隙沙，轻分隔线 */
+  padding-bottom: env(safe-area-inset-bottom); /* 适配全面屏底部安全区 */
+  z-index: 100;
+}
+.tabbar__item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100rpx;
+}
+.tabbar__text {
+  font-size: 26rpx;
+  transition: color 0.18s ease;
+}
+
+/* 暗色模式：背景跟随全局暗底 */
+@media (prefers-color-scheme: dark) {
+  .tabbar {
+    background: #211D17;
+    border-top-color: #2D281F;
+  }
+}

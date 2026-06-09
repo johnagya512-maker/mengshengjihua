@@ -8,14 +8,15 @@
   ],
   "window": {
     "navigationStyle": "custom",
-    "backgroundColor": "#F7F5F2",
+    "backgroundColor": "#F5F0E1",
     "backgroundTextStyle": "dark",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
+    "custom": true,
     "color": "#B0AAA2",
     "selectedColor": "#7A9E7E",
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F0E1",
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/home/home", "text": "今日" },

@@ -44,6 +44,10 @@ Page({
 
   onShow() {
     if (!isLoggedIn()) { wx.reLaunch({ url: '/pages/guide/guide' }); return; }
+    // 自绘 tabBar：高亮当前页（复盘=2）
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
+    }
     this.load();
   },
 

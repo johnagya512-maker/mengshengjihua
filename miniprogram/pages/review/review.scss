@@ -1,5 +1,5 @@
 // pages/review/review.scss — 本周复盘样式（沿用项目页卡片/色板约定）
-.review { min-height: 100vh; padding: 120rpx 40rpx 160rpx; box-sizing: border-box; }
+.review { min-height: 100vh; padding: 120rpx 40rpx; padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .review__head { margin-bottom: 32rpx; }
 .review__title { font-size: 48rpx; font-weight: 600; }
 .review__loading, .review__empty {
@@ -12,9 +12,9 @@
 }
 
 /* 今日/本周 切换 */
-.tabs { display: flex; gap: 12rpx; margin-bottom: 36rpx; background: rgba(0,0,0,0.04); border-radius: 999rpx; padding: 6rpx; }
+.tabs { display: flex; gap: 12rpx; margin-bottom: 36rpx; background: var(--color-gap); border-radius: 999rpx; padding: 6rpx; }
 .tab { flex: 1; text-align: center; padding: 16rpx 0; font-size: 28rpx; color: var(--color-text-sub); border-radius: 999rpx; transition: all 0.2s; }
-.tab--on { background: #fff; color: var(--color-text); font-weight: 600; }
+.tab--on { background: var(--color-card); color: var(--color-text); font-weight: 600; }
 
 /* 今日小结 */
 .today__head { font-size: 32rpx; font-weight: 600; line-height: 1.5; margin-bottom: 28rpx; }
