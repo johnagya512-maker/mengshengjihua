@@ -54,6 +54,34 @@
 .focus__progress-fill { height: 100%; background: var(--color-primary); border-radius: 999rpx; transition: width 1s linear; }
 .focus__early { font-size: 28rpx; color: var(--color-text-sub); padding: 18rpx 56rpx; border-radius: 999rpx; background: var(--color-card); box-shadow: var(--shadow-card); }
 
+/* 子任务清单（确认页预览） */
+.focus__steps { width: 100%; margin: 16rpx 0 8rpx; }
+.focus__step { display: flex; align-items: center; gap: 20rpx; padding: 16rpx 0; }
+.focus__step-idx {
+  width: 44rpx; height: 44rpx; line-height: 44rpx; text-align: center; flex-shrink: 0;
+  border-radius: 50%; background: rgba(198,123,92,0.12); color: var(--color-primary); font-size: 24rpx; font-weight: 600;
+}
+.focus__step-action { flex: 1; font-size: 28rpx; color: var(--color-text); line-height: 1.4; }
+
+/* 计时阶段：可勾选子任务 */
+.focus__runsteps { width: 80%; margin-bottom: 48rpx; }
+.focus__runstep { display: flex; align-items: center; gap: 20rpx; padding: 18rpx 0; }
+.focus__runstep-box {
+  width: 44rpx; height: 44rpx; line-height: 40rpx; text-align: center; flex-shrink: 0;
+  border: 2rpx solid var(--color-primary); border-radius: 50%; color: #fff; font-size: 26rpx;
+}
+.focus__runstep.is-done .focus__runstep-box { background: var(--color-primary); }
+.focus__runstep.is-done .focus__runstep-action { text-decoration: line-through; color: var(--color-text-sub); }
+.focus__runstep-action { flex: 1; font-size: 28rpx; color: var(--color-text); }
+
+/* 计时按钮组：续时 + 提前结束 */
+.focus__runbtns { display: flex; align-items: center; gap: 24rpx; }
+.focus__addtime {
+  font-size: 28rpx; color: var(--color-primary); padding: 18rpx 48rpx; border-radius: 999rpx;
+  background: rgba(198,123,92,0.1); border: 2rpx solid rgba(198,123,92,0.25);
+}
+.focus__addtime:active { background: rgba(198,123,92,0.2); }
+
 /* 完成阶段 */
 .focus__done-mark {
   width: 128rpx; height: 128rpx; line-height: 128rpx; text-align: center; border-radius: 50%;

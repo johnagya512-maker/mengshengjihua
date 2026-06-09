@@ -7,31 +7,67 @@
 
   <!-- 当前任务 / 空态 -->
   <view class="home__body">
-    <block wx:if="{{current}}">
-      <view class="taskcard card">
-        <view class="taskcard__tag">{{current.project_tag}}</view>
-        <view class="taskcard__action">{{current.action}}</view>
-        <view class="taskcard__vision">{{current.vision_statement}}</view>
-        <view class="taskcard__meta">预估 {{current.duration}} 分钟</view>
+    <block wx:if="{{currentGroup}}">
+      <!-- 当前执行单元：大任务组 -->
+      <view wx:if="{{currentGroup.is_group}}" class="taskcard card taskcard--group">
+        <view class="taskcard__tag">{{currentGroup.steps[0].project_tag || '大事'}}</view>
+        <view class="taskcard__action">{{currentGroup.parent_action}}</view>
+        <view wx:if="{{currentGroup.steps[0].vision_statement}}" class="taskcard__vision">{{currentGroup.steps[0].vision_statement}}</view>
+        <view class="taskcard__meta">共 {{currentGroup.step_total}} 步 · 还剩 {{currentGroup.remain_steps}} 步 · 预估 {{currentGroup.total_duration}} 分钟</view>
+        <!-- 子任务清单（缩进），不带各自时间 -->
+        <view class="substeps">
+          <view wx:for="{{currentGroup.steps}}" wx:key="task_id" class="substep">
+            <view class="substep__dot"></view>
+            <view class="substep__action">{{item.action}}</view>
+            <view class="substep__done" catchtap="completeDirect" data-id="{{item.task_id}}">✓</view>
+          </view>
+        </view>
+        <view class="taskcard__btns">
+          <button class="btn-primary taskcard__start" data-parent="{{currentGroup.parent_task_id}}" bindtap="startGroup">开始专注</button>
+          <view class="taskcard__del" catchtap="deleteGroup" data-parent="{{currentGroup.parent_task_id}}">删除整件</view>
+        </view>
+      </view>
+      <!-- 当前执行单元：单任务 -->
+      <view wx:else class="taskcard card">
+        <view class="taskcard__tag">{{currentGroup.project_tag}}</view>
+        <view class="taskcard__action">{{currentGroup.action}}</view>
+        <view class="taskcard__vision">{{currentGroup.vision_statement}}</view>
+        <view class="taskcard__meta">预估 {{currentGroup.duration}} 分钟</view>
         <view class="taskcard__btns">
           <button class="btn-primary taskcard__start" bindtap="startTask">开始</button>
-          <button class="taskcard__done" catchtap="completeDirect" data-id="{{current.task_id}}">✓ 完成</button>
-          <view class="taskcard__del" catchtap="deletePending" data-id="{{current.task_id}}">删除</view>
+          <button class="taskcard__done" catchtap="completeDirect" data-id="{{currentGroup.task_id}}">✓ 完成</button>
+          <view class="taskcard__del" catchtap="deletePending" data-id="{{currentGroup.task_id}}">删除</view>
         </view>
       </view>
       <view class="home__count">{{coachLine}}</view>
 
-      <!-- 今日待办列表：当前任务之外的队列，让新增任务可见 -->
-      <view wx:if="{{tasks.length > 1}}" class="queue">
+      <!-- 今日待办列表：按大任务分组 -->
+      <view wx:if="{{nextGroups.length}}" class="queue">
         <view class="queue__title">接下来</view>
-        <view wx:for="{{tasks}}" wx:key="task_id" wx:if="{{index > 0}}"
-              class="queue__item" data-id="{{item.task_id}}" bindtap="selectTask">
-          <view class="queue__dot"></view>
-          <view class="queue__action">{{item.action}}</view>
-          <view class="queue__dur">{{item.duration}}分</view>
-          <view class="queue__done" catchtap="completeDirect" data-id="{{item.task_id}}">✓</view>
-          <view class="queue__del" catchtap="deletePending" data-id="{{item.task_id}}">×</view>
-        </view>
+        <block wx:for="{{nextGroups}}" wx:key="index" wx:for-item="g">
+          <!-- 大任务组：父标题 + 缩进子任务 -->
+          <view wx:if="{{g.is_group}}" class="queue__group">
+            <view class="queue__group-head" data-parent="{{g.parent_task_id}}" bindtap="selectGroup">
+              <view class="queue__dot queue__dot--group"></view>
+              <view class="queue__action">{{g.parent_action}}</view>
+              <view class="queue__dur">{{g.remain_steps}}步 · {{g.total_duration}}分</view>
+              <view class="queue__del" catchtap="deleteGroup" data-parent="{{g.parent_task_id}}">×</view>
+            </view>
+            <view wx:for="{{g.steps}}" wx:key="task_id" wx:for-item="s" class="queue__substep">
+              <view class="substep__dot"></view>
+              <view class="substep__action">{{s.action}}</view>
+              <view class="queue__done" catchtap="completeDirect" data-id="{{s.task_id}}">✓</view>
+            </view>
+          </view>
+          <!-- 独立任务 -->
+          <view wx:else class="queue__item" data-id="{{g.task_id}}" bindtap="selectTask">
+            <view class="queue__dot"></view>
+            <view class="queue__action">{{g.action}}</view>
+            <view class="queue__dur">{{g.duration}}分</view>
+            <view class="queue__done" catchtap="completeDirect" data-id="{{g.task_id}}">✓</view>
+            <view class="queue__del" catchtap="deletePending" data-id="{{g.task_id}}">×</view>
+          </view>
+        </block>
       </view>
     </block>
     <view wx:else class="home__empty">今天清空了，牛。</view>

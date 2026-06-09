@@ -178,6 +178,10 @@ export function mockCall(name: string, data: any): Promise<any> {
         project_id: pid, project_tag: proj ? tag : '',
         action: data.action, duration: data.duration, vision_statement: data.vision_statement,
         type: 'normal', scheduled_time: '', is_priority: !!data.is_priority, created_at: mem.seq,
+        parent_task_id: data.parent_task_id || '', parent_action: data.parent_action || '',
+        parent_duration: data.parent_duration || 0,
+        sub_index: Number.isInteger(data.sub_index) ? data.sub_index : -1,
+        sub_total: data.sub_total || 0,
       };
       if (data.repeat === 'daily') {
         // 母本（template，不排期不显示）+ 当天实例

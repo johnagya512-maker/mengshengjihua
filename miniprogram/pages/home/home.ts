@@ -15,6 +15,8 @@ Page({
   data: {
     tasks: [] as Task[],
     current: null as Task | null,
+    currentGroup: null as any,           // 当前执行单元：大任务组 或 单任务
+    nextGroups: [] as any[],             // 「接下来」按大任务分组
     doneTasks: [] as Task[],             // 今日及历史已完成/跳过，划线留痕，用户自删
     capUsed: 0,
     capTotal: 0,
@@ -68,10 +70,53 @@ Page({
 
   applyTasks(tasks: Task[], doneToday = 0, doneTasks?: Task[]) {
     const pending = tasks.filter((t) => t.status === 'pending' || !t.status);
+    const groups = this.buildGroups(pending);
     const coachLine = pending.length > 0 ? progressLine(doneToday, pending.length) : '';
-    const patch: any = { tasks: pending, current: pending[0] || null, coachLine };
+    const patch: any = {
+      tasks: pending,
+      current: pending[0] || null,
+      currentGroup: groups[0] || null,
+      nextGroups: groups.slice(1),
+      coachLine,
+    };
     if (doneTasks) patch.doneTasks = doneTasks; // 仅在有新数据时更新，避免缓存渲染清空留痕
     this.setData(patch);
+  },
+
+  // 把扁平 pending 列表按大任务(parent_task_id)聚成「组」，保持原顺序。
+  // 大任务组：{ is_group:true, parent_task_id, parent_action, total_duration, steps:[子任务], done_count, step_total }
+  // 独立任务：{ is_group:false, ...task }
+  buildGroups(pending: Task[]): any[] {
+    const groups: any[] = [];
+    const indexByParent: Record<string, number> = {};
+    for (const t of pending) {
+      const pid = t.parent_task_id;
+      if (pid) {
+        if (indexByParent[pid] === undefined) {
+          indexByParent[pid] = groups.length;
+          groups.push({
+            is_group: true,
+            parent_task_id: pid,
+            parent_action: t.parent_action || '这件大事',
+            total_duration: t.parent_duration || 0,
+            step_total: t.sub_total || 0,
+            steps: [],
+          });
+        }
+        groups[indexByParent[pid]].steps.push(t);
+      } else {
+        groups.push({ is_group: false, ...t });
+      }
+    }
+    // 大任务组补充：剩余步数、用首个子任务承载「开始」入口
+    groups.forEach((g) => {
+      if (g.is_group) {
+        g.remain_steps = g.steps.length;
+        g.done_count = (g.step_total || g.steps.length) - g.steps.length;
+        g.first_task_id = g.steps[0] ? g.steps[0].task_id : '';
+      }
+    });
+    return groups;
   },
 
   applyCapacity(used: number, total: number) {
@@ -252,13 +297,20 @@ Page({
     if (!c) return;
     try {
       if (c.is_big_task && c.subtasks && c.subtasks.length >= 2) {
-        // 大事：生成共享父身份，每个子任务作为可执行任务挂在这件大事下
+        // 大事：生成共享父身份，每个子任务挂在这件大事下。
+        // 时间只在大任务：总时长 c.duration 均摊到各子任务的 duration（保证容量累加=总时长），
+        // 同时记 parent_duration 供展示/计时，sub_index/sub_total 供「第 N 步」显示。
         const parentTaskId = `pt_${Date.now()}`;
-        for (const s of c.subtasks) {
+        const n = c.subtasks.length;
+        const total = c.duration || 30;
+        const per = Math.max(1, Math.round(total / n));
+        for (let i = 0; i < n; i++) {
+          const s = c.subtasks[i];
           await api.saveTask({
-            action: s.action, duration: s.duration,
+            action: s.action, duration: per,
             project_tag: c.project_tag, vision_statement: c.vision_statement,
             parent_task_id: parentTaskId, parent_action: c.action,
+            parent_duration: total, sub_index: i, sub_total: n,
           });
         }
       } else {
@@ -299,11 +351,56 @@ Page({
   // 强制今天：不移走，溢出任务留在今日末尾（用户自行承担超载）
   forceToday() { this.setData({ overflowTask: null }); },
 
-  // 开始执行 → 跳转专注页
+  // 开始执行 → 跳转专注页（单任务）
   startTask() {
     const t = this.data.current;
     if (!t) return;
     wx.navigateTo({ url: `/pages/focus/focus?task_id=${t.task_id}` });
+  },
+
+  // 开始大任务组 → 进专注页对整件计时（传 parent_task_id，专注页加载全部子任务作勾选）
+  startGroup(e: WechatMiniprogram.TouchEvent) {
+    const parent = e.currentTarget.dataset.parent as string;
+    if (!parent) return;
+    wx.navigateTo({ url: `/pages/focus/focus?parent_task_id=${parent}` });
+  },
+
+  // 从「接下来」点某个大任务组：把该组所有子任务提到队列最前，成为当前执行单元
+  selectGroup(e: WechatMiniprogram.TouchEvent) {
+    const parent = e.currentTarget.dataset.parent as string;
+    if (!parent) return;
+    const picked = this.data.tasks.filter((t) => t.parent_task_id === parent);
+    const rest = this.data.tasks.filter((t) => t.parent_task_id !== parent);
+    const reordered = [...picked, ...rest];
+    this.applyTasks(reordered);
+    cacheTasks(reordered);
+  },
+
+  // 删除整个大任务（连同所有子任务）
+  deleteGroup(e: WechatMiniprogram.TouchEvent) {
+    const parent = e.currentTarget.dataset.parent as string;
+    if (!parent) return;
+    const steps = this.data.tasks.filter((t) => t.parent_task_id === parent);
+    if (!steps.length) return;
+    wx.showModal({
+      title: '删除整件大事',
+      content: `「${steps[0].parent_action}」连同 ${steps.length} 个步骤一起删掉？`,
+      confirmText: '删除',
+      confirmColor: '#E05A4F',
+      success: async (res) => {
+        if (!res.confirm) return;
+        const rest = this.data.tasks.filter((t) => t.parent_task_id !== parent);
+        this.applyTasks(rest);
+        cacheTasks(rest);
+        try {
+          await Promise.all(steps.map((s) => api.deleteTask(s.task_id)));
+          this.refresh('add_task');
+        } catch (e2) {
+          wx.showToast({ title: '部分删除失败，下次刷新会恢复', icon: 'none' });
+          this.refresh('add_task');
+        }
+      },
+    });
   },
 
   // 从待办列表点某条任务：提到顶部成为当前任务卡，再由用户点「开始」进专注页

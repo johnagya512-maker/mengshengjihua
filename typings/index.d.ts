@@ -39,6 +39,9 @@ interface Task {
   is_priority?: boolean;       // P0 紧急
   parent_task_id?: string;     // 大事拆分：所属父任务（步骤共享同一个）
   parent_action?: string;      // 父任务（大事）标题，用于归组显示
+  parent_duration?: number;    // 大任务总时长（分钟）。子任务不单独计时，时间只在大任务上
+  sub_index?: number;          // 子任务序号（从 0 起），用于展示「第 N 步」
+  sub_total?: number;          // 该大任务的子任务总数
   repeat?: 'daily' | 'none';   // daily=每日重复母本，每天实例化进清单
   repeat_date?: string;        // 实例所属日期 YYYY-MM-DD（由母本克隆而来）
   repeat_parent_id?: string;   // 实例指向其母本 task_id
@@ -80,7 +83,7 @@ interface AutoBadge {
 
 interface SubTask {
   action: string;
-  duration: number;
+  duration?: number;  // 已弃用：时间只在大任务上，子任务不单独计时
 }
 
 // ===== v1.1 第二期：复盘 =====

@@ -73,6 +73,30 @@
 }
 .queue__del:active { background: rgba(224,90,79,0.12); color: #E05A4F; transform: scale(0.9); }
 
+/* 大任务子任务清单（当前卡内，缩进） */
+.substeps { margin-top: 24rpx; padding-top: 20rpx; border-top: 2rpx solid rgba(0,0,0,0.06); }
+.substep { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 0; }
+.substep__dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--color-primary); opacity: 0.4; flex-shrink: 0; }
+.substep__action { flex: 1; font-size: 28rpx; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.substep__done {
+  flex-shrink: 0; width: 52rpx; height: 52rpx; line-height: 48rpx; text-align: center;
+  font-size: 28rpx; color: var(--color-accent); border-radius: 50%; background: rgba(107,123,60,0.1);
+}
+.substep__done:active { transform: scale(0.9); }
+
+/* 「接下来」里的大任务组 */
+.queue__group { margin-bottom: 12rpx; padding: 8rpx 0; }
+.queue__group-head {
+  display: flex; align-items: center; gap: 20rpx; padding: 20rpx 24rpx;
+  background: rgba(198,123,92,0.06); border-radius: var(--radius-md);
+}
+.queue__group-head:active { transform: scale(0.98); }
+.queue__dot--group { opacity: 1; background: var(--color-primary); border-style: solid; }
+.queue__substep {
+  display: flex; align-items: center; gap: 16rpx; padding: 12rpx 24rpx 12rpx 56rpx;
+}
+.queue__substep .substep__action { font-size: 26rpx; color: var(--color-text-sub); }
+
 /* 已完成 / 跳过留痕：划线置灰，用户自删 */
 .done { margin-top: 56rpx; }
 .done__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20rpx; }

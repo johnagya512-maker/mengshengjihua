@@ -4,9 +4,17 @@
     <view class="focus__back" bindtap="goBack">‹ 返回</view>
 
     <view class="focus__body">
-      <view class="focus__label">即将专注</view>
-      <view class="focus__action">{{task.action}}</view>
-      <view wx:if="{{task.vision_statement}}" class="focus__vision">{{task.vision_statement}}</view>
+      <view class="focus__label">{{isGroup ? '即将专注 · 这件大事' : '即将专注'}}</view>
+      <view class="focus__action">{{isGroup ? parentAction : task.action}}</view>
+      <view wx:if="{{!isGroup && task.vision_statement}}" class="focus__vision">{{task.vision_statement}}</view>
+
+      <!-- 组模式：子任务清单预览（不带各自时间） -->
+      <view wx:if="{{isGroup}}" class="focus__steps">
+        <view wx:for="{{steps}}" wx:key="task_id" class="focus__step">
+          <view class="focus__step-idx">{{index + 1}}</view>
+          <view class="focus__step-action">{{item.action}}</view>
+        </view>
+      </view>
 
       <view class="focus__dur">
         <view class="focus__adjust {{duration <= 15 ? 'is-disabled' : ''}}" data-d="{{-15}}" bindtap="adjust">－</view>
@@ -14,7 +22,7 @@
           <view class="focus__durval">{{duration}}</view>
           <view class="focus__durunit">分钟 · 点击改</view>
         </view>
-        <view class="focus__adjust {{duration >= 120 ? 'is-disabled' : ''}}" data-d="{{15}}" bindtap="adjust">＋</view>
+        <view class="focus__adjust {{duration >= 600 ? 'is-disabled' : ''}}" data-d="{{15}}" bindtap="adjust">＋</view>
       </view>
       <view wx:if="{{capacityTip}}" class="focus__cap">{{capacityTip}}</view>
     </view>
@@ -28,10 +36,23 @@
   <view wx:elif="{{phase === 'running'}}" class="focus__running">
     <view class="focus__ring">
       <view class="focus__timer">{{timeLabel}}</view>
-      <view class="focus__running-tip">{{task.action}}</view>
+      <view class="focus__running-tip">{{isGroup ? parentAction : task.action}}</view>
     </view>
     <view class="focus__progress"><view class="focus__progress-fill" style="width:{{progress}}%"></view></view>
-    <view class="focus__early" bindtap="earlyFinish">提前结束</view>
+
+    <!-- 组模式：计时中勾选子任务，逐个划掉 -->
+    <view wx:if="{{isGroup}}" class="focus__runsteps">
+      <view wx:for="{{steps}}" wx:key="task_id" class="focus__runstep {{item.done ? 'is-done' : ''}}"
+            data-id="{{item.task_id}}" bindtap="toggleStep">
+        <view class="focus__runstep-box">{{item.done ? '✓' : ''}}</view>
+        <view class="focus__runstep-action">{{item.action}}</view>
+      </view>
+    </view>
+
+    <view class="focus__runbtns">
+      <view class="focus__addtime" bindtap="addTime">＋15 分钟</view>
+      <view class="focus__early" bindtap="earlyFinish">提前结束</view>
+    </view>
   </view>
 
   <!-- 完成阶段 -->
@@ -39,7 +60,7 @@
     <view class="focus__body">
       <view class="focus__done-mark">✓</view>
       <view class="focus__done">这一程，走完了</view>
-      <view wx:if="{{task.action}}" class="focus__done-sub">{{task.action}}</view>
+      <view class="focus__done-sub">{{isGroup ? parentAction : task.action}}</view>
     </view>
     <view class="focus__foot">
       <button class="btn-primary focus__complete" bindtap="complete">完成</button>

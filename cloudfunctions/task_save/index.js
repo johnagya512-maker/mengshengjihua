@@ -17,7 +17,7 @@ function genId() { return `t_${Date.now()}_${Math.random().toString(36).slice(2,
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, repeat } = event;
+  const { action, duration, project_tag, vision_statement, is_priority, parent_task_id, parent_action, parent_duration, sub_index, sub_total, repeat } = event;
   if (!OPENID) return fail(400, '登录态无效');
 
   // 字段校验。愿景非必填：碎任务留白，仅「大事」的步骤才配愿景
@@ -43,6 +43,10 @@ exports.main = async (event) => {
       action, duration: Number(duration), vision_statement: vision_statement || '',
       type: 'normal', is_priority: !!is_priority, created_at: Date.now(),
       parent_task_id: parent_task_id || '', parent_action: parent_action || '',
+      // 大事拆分：时间只在大任务，子任务存父总时长 + 序号（duration 为均摊值，仅供容量累加）
+      parent_duration: Number(parent_duration) || 0,
+      sub_index: Number.isInteger(sub_index) ? sub_index : -1,
+      sub_total: Number(sub_total) || 0,
     };
 
     if (isDaily) {
