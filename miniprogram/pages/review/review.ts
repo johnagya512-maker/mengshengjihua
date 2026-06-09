@@ -71,18 +71,12 @@ Page({
       if (this.data.todayStreak > 0) {
         ctx.fillText(`连续行动第 ${this.data.todayStreak} 天`, W / 2, 405);
       }
-      // 完成清单
-      ctx.textAlign = 'left'; ctx.fillStyle = '#3A352F'; ctx.font = '30px sans-serif';
-      let y = 480;
-      this.data.todayActions.forEach((a) => {
-        const text = a.length > 18 ? a.slice(0, 18) + '…' : a;
-        ctx.fillText(`✓ ${text}`, 80, y); y += 56;
-      });
-      // 鼓励语 + 落款
-      ctx.textAlign = 'center'; ctx.fillStyle = '#8A8178'; ctx.font = '26px sans-serif';
-      ctx.fillText(this.data.todayCheer, W / 2, H - 90);
-      ctx.fillStyle = '#C67B5C'; ctx.font = '600 26px sans-serif';
-      ctx.fillText('闷声计划', W / 2, H - 45);
+      // 不画具体任务清单：任务名属隐私，分享只传递「状态」不公开「做了什么」（契合「闷声」）
+      // 鼓励语 + 落款（放底部，整体上下平衡）
+      ctx.fillStyle = '#8A8178'; ctx.font = '28px sans-serif';
+      ctx.fillText(this.data.todayCheer, W / 2, H - 120);
+      ctx.fillStyle = '#C67B5C'; ctx.font = '600 30px sans-serif';
+      ctx.fillText('闷声计划', W / 2, H - 60);
       // 导出图片 → 弹微信分享菜单（可直接发好友/存图；朋友圈受微信限制需存图后手动发）
       wx.canvasToTempFilePath({
         canvas,
