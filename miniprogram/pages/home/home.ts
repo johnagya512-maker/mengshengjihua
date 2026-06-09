@@ -8,7 +8,6 @@ import {
   getActiveTask, clearActiveTask,
 } from '../../utils/store';
 import { getUserId } from '../../utils/auth';
-import { startVoice, stopVoice } from '../../utils/voice';
 import { completeEcho, progressLine } from '../../utils/coach';
 
 Page({
@@ -23,7 +22,6 @@ Page({
     remainLabel: '0 小时 0 分钟',
     showInput: false,
     inputText: '',
-    recording: false,
     parsing: false,
     parseCard: null as ParseResult | null,
     overflowTask: null as Task | null,   // 容量饱和待确认
@@ -214,22 +212,8 @@ Page({
     } catch (err) { /* 提示已由 request 层弹出 */ }
   },
 
-  // ---- 语音录入：长按说话 ----
-  startRecord() {
-    this.setData({ recording: true });
-    startVoice({
-      onResult: (text) => {
-        this.setData({ recording: false, inputText: (this.data.inputText + text).slice(0, 500) });
-      },
-      onError: (msg) => {
-        this.setData({ recording: false });
-        wx.showToast({ title: msg, icon: 'none' }); // 「没录到声音」时保留文字输入兜底
-      },
-    });
-  },
-  stopRecord() {
-    if (this.data.recording) stopVoice();
-  },
+  // 语音录入（长按说话）暂时下线：同声传译插件无法添加。voice.ts 代码保留，
+  // 待插件可用或改用其他 ASR 时，恢复 startRecord/stopRecord 与 wxml 入口即可。
 
   async submitInput() {
     if (this.data.parsing) return; // 防重复提交
