@@ -1,7 +1,7 @@
 // pages/focus/focus.ts — 专注计时执行页（支持单任务 / 大任务组两种模式）
 import { api } from '../../utils/api';
 import {
-  getCachedTasks, stashComplete,
+  getCachedTasks, stashComplete, cacheTasks,
   setActiveTask, clearActiveTask, getCachedCapacity,
 } from '../../utils/store';
 import { SKIP_REASONS } from '../../utils/constants';
@@ -164,6 +164,7 @@ Page({
       wx.showToast({ title: skipReply(skip_reason), icon: 'none', duration: 1800 });
     }
     try {
+      const doneIds: string[] = [];
       if (this.data.isGroup) {
         // 组模式：完成 = 把所有还没勾的子任务一并按结果提交（已勾的计时中已提交）
         const pending = this.data.steps.filter((s) => !s.done);
@@ -172,13 +173,19 @@ Page({
           const payload = { task_id: s.task_id, actual_duration: actualEach || 0, result, skip_reason };
           try { await api.completeTask(payload); } catch (e: any) { if (e.code === 0) stashComplete(payload); }
         }
+        // 整组（含计时中已勾的）都已离开待办：从缓存移除全部子任务
+        this.data.steps.forEach((s) => doneIds.push(s.task_id));
       } else {
         const t = this.data.task!;
         const actual = this.data.duration - Math.floor(this.data.remainSec / 60);
         const payload = { task_id: t.task_id, actual_duration: actual || t.duration, result, skip_reason };
         try { await api.completeTask(payload); } catch (e: any) { if (e.code === 0) stashComplete(payload); }
+        doneIds.push(t.task_id);
       }
-      await api.compute(result); // 弹性重排
+      // 同步首页缓存：移除已处理任务，使同天返回的缓存渲染正确（不复活已完成项）
+      const rest = getCachedTasks().filter((t) => !doneIds.includes(t.task_id));
+      cacheTasks(rest);
+      await api.compute(result); // 弹性重排（服务端，跨天或下次主动刷新时生效）
     } catch (e) { /* 已在分支内兜底 */ }
     wx.navigateBack();
   },

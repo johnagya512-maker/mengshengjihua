@@ -52,7 +52,18 @@ Page({
   onShow() {
     this.syncOffline();
     this.checkInterrupted();
-    this.refresh('daily_init');
+    // 日期守卫：同一天内返回（如从专注页退回）只用缓存渲染，保留当前顺序与用户选择，
+    // 不重跑排期算法以免当前任务被重排洗走。只有真正跨天才 daily_init 重拉（补每日重复实例）。
+    const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    const lastDay = wx.getStorageSync('last_daily_init') || '';
+    if (lastDay !== today) {
+      wx.setStorageSync('last_daily_init', today);
+      this.refresh('daily_init');
+    } else {
+      // 同天：从缓存恢复展示（完成/删除已在本地即时更新过缓存）
+      const cached = getCachedTasks();
+      if (cached && cached.length >= 0) this.applyTasks(cached);
+    }
   },
 
   // 拉取最新排期
