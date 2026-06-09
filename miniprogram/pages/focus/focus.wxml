@@ -9,12 +9,15 @@
       <view wx:if="{{task.vision_statement}}" class="focus__vision">{{task.vision_statement}}</view>
 
       <view class="focus__dur">
-        <view class="focus__adjust {{duration <= 15 ? 'is-disabled' : ''}}" data-d="{{-15}}" bindtap="adjust">－</view>
         <view class="focus__durbox">
           <view class="focus__durval">{{duration}}</view>
           <view class="focus__durunit">分钟</view>
         </view>
-        <view class="focus__adjust {{duration >= 120 ? 'is-disabled' : ''}}" data-d="{{15}}" bindtap="adjust">＋</view>
+        <view class="focus__chips">
+          <view wx:for="{{durationPresets}}" wx:key="*this"
+                class="focus__chip {{duration === item ? 'is-on' : ''}}"
+                data-m="{{item}}" bindtap="pickDuration">{{item}}</view>
+        </view>
       </view>
     </view>
 

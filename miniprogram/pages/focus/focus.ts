@@ -11,6 +11,7 @@ Page({
   data: {
     task: null as Task | null,
     duration: 30,          // 可微调
+    durationPresets: [15, 25, 30, 45, 60, 90],  // 常用时长档位（番茄钟25、半小时、1小时等）
     phase: 'confirm' as 'confirm' | 'running' | 'finish',
     remainSec: 0,
     timeLabel: '00:00',
@@ -26,11 +27,9 @@ Page({
     this.setData({ task, duration: task.duration });
   },
 
-  // 耗时微调（P1）±15min, 15~120
-  adjust(e: WechatMiniprogram.TouchEvent) {
-    const delta = Number(e.currentTarget.dataset.d);
-    const next = Math.min(120, Math.max(15, this.data.duration + delta));
-    this.setData({ duration: next });
+  // 选时长档位（预设芯片，一步到位）
+  pickDuration(e: WechatMiniprogram.TouchEvent) {
+    this.setData({ duration: Number(e.currentTarget.dataset.m) });
   },
 
   // 确认阶段返回今日列表（计时未开始，无副作用）
